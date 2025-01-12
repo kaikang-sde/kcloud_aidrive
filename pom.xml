@@ -94,19 +94,27 @@
         </dependency>
         <!-- 代码自动生成依赖 end-->
 
-        <!-- Hutool依赖 -->
+        <!-- Hutool -->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool-all.version}</version>
         </dependency>
 
-        <!-- Fastjson依赖 -->
+        <!-- Fastjson -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.18.1</version>
+        </dependency>
+
 
         <!-- knife4j 依赖，接口文档工具 -->
         <dependency>
