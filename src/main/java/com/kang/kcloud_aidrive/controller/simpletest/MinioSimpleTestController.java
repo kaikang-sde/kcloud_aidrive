@@ -14,6 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 
+/**
+ * Minio simple test controller - Minio简单测试控制器
+ * Native MinIO Integration Upload Test
+ * @author Kai Kang
+ */
 @RestController
 @RequestMapping("/api/test/minio")
 public class MinioSimpleTestController {
