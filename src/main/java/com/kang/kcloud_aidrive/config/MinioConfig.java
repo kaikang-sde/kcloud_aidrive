@@ -25,9 +25,10 @@ public class MinioConfig {
     @Value("bucket-name")
     private String bucketName;
 
-    // 预签名/临时访问url过期时间(ms)
+    // expiration time for a pre-signed URL (used to generate temporary access URLs for MinIO - 10 minutes).
     private Long PRE_SIGN_URL_EXPIRE = 60 * 10 * 1000L;
 
+    // Create a minioClient with the MinIO server playground
     @Bean
     public MinioClient getMinioClient() {
         return MinioClient.builder().endpoint(endpoint).credentials(accessKey, accessSecret).build();

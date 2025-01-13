@@ -23,8 +23,6 @@ public class CommonUtil {
     /**
      * Respond with JSON data to the frontend
      *
-     * @param response
-     * @param obj
      */
     public static void sendJsonMessage(HttpServletResponse response, Object obj) {
 
@@ -50,21 +48,19 @@ public class CommonUtil {
 
     /**
      * Generate file storage path based on file suffix: year/month/day/uuid.suffix format
-     * 根据文件后缀，生成文件存储：年/月/日/uuid.suffix 格式
+     * Hutool package
+     * NOT USED
      */
-    public static String getFilePath(String fileName) {
+    public static String getFilePathWithHutool(String fileName) {
         String suffix = getFileSuffix(fileName);
         // Generate a unique key for the file in the storage bucket/生成文件在存储桶中的唯一键
         return StrUtil.format("{}/{}/{}/{}.{}", DateUtil.thisYear(), DateUtil.thisMonth() + 1, DateUtil.thisDayOfMonth(), IdUtil.randomUUID(), suffix);
     }
 
     /**
-     * same as getFilePath method without Hutool package
-     *
-     * @param fileName
-     * @return
+     * Generate file storage path based on file suffix: year/month/day/uuid.suffix format
      */
-    public static String getFilePathWithoutHutool(String fileName) {
+    public static String getFilePath(String fileName) {
         String suffix = getFileSuffix(fileName);
 
         // Get current date
@@ -74,7 +70,7 @@ public class CommonUtil {
         int day = today.getDayOfMonth();
 
         // Generate a unique file path
-        String filePath = String.format("%d/%02d/%02d/%s.%s", year, month, day, UUID.randomUUID(), suffix);
-        return filePath;
+        // example: 2025/01/13/ed035b8b-622f-44f7-b8f2-878e90bdcc2c.JPG
+        return String.format("%d/%02d/%02d/%s.%s", year, month, day, UUID.randomUUID(), suffix);
     }
 }

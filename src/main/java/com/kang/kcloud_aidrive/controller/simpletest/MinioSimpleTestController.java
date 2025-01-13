@@ -31,9 +31,10 @@ public class MinioSimpleTestController {
 
     @PostMapping("/upload")
     public JsonData testUpload(@RequestParam("file") MultipartFile file) {
-        // 获取上传文件名
+
         String filename = CommonUtil.getFilePath(file.getOriginalFilename());
         try {
+            // Storage services like MinIO or AWS S3 require file content to be uploaded as a stream.
             InputStream inputStream = file.getInputStream();
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(minioConfig.getBucketName())
@@ -41,7 +42,7 @@ public class MinioSimpleTestController {
                     .stream(inputStream, inputStream.available(), -1)
                     .build());
         } catch (Exception e) {
-            e.printStackTrace();
+            return JsonData.buildError(e.getMessage());
         }
         String url = minioConfig.getEndpoint() + "/" + minioConfig.getBucketName() + "/" + filename;
         return JsonData.buildSuccess(url);
