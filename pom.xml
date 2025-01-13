@@ -115,6 +115,11 @@
             <version>2.18.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.3.7</version>
+        </dependency>
 
         <!-- knife4j 依赖，接口文档工具 -->
         <dependency>
