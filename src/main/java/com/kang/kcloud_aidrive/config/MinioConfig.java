@@ -28,7 +28,7 @@ public class MinioConfig {
     // expiration time for a pre-signed URL (used to generate temporary access URLs for MinIO - 10 minutes).
     private Long PRE_SIGN_URL_EXPIRE = 60 * 10 * 1000L;
 
-    // Create a minioClient with the MinIO server playground
+    // Create a minioClient with the MinIO server playground, not used when AWS S3 APIs
     @Bean
     public MinioClient getMinioClient() {
         return MinioClient.builder().endpoint(endpoint).credentials(accessKey, accessSecret).build();
