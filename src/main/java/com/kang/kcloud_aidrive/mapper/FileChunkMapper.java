@@ -1,6 +1,6 @@
-package com.kang.mapper;
+package com.kang.kcloud_aidrive.mapper;
 
-import com.kang.model.FileChunkDO;
+import com.kang.kcloud_aidrive.model.FileChunkDO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

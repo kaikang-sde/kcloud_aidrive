@@ -21,10 +21,13 @@ import java.net.URI;
 @Slf4j
 public class AWSS3Config {
 
-    @Autowired
-    private MinioConfig minioConfig;
+    private final MinioConfig minioConfig;
 
     private S3Client s3Client;
+
+    public AWSS3Config(MinioConfig minioConfig) {
+        this.minioConfig = minioConfig;
+    }
 
     @Bean(name = "S3Client")
     public S3Client getS3Client() {

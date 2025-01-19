@@ -1,4 +1,4 @@
-package com.kang.model;
+package com.kang.kcloud_aidrive.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

@@ -1,6 +1,6 @@
-package com.kang.mapper;
+package com.kang.kcloud_aidrive.mapper;
 
-import com.kang.model.AccountDO;
+import com.kang.kcloud_aidrive.model.AccountDO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
