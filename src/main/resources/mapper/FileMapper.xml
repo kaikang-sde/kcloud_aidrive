@@ -4,16 +4,16 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.kang.model.FileDO">
-        <id column="id" property="id" />
-        <result column="account_id" property="accountId" />
-        <result column="file_name" property="fileName" />
-        <result column="file_suffix" property="fileSuffix" />
-        <result column="file_size" property="fileSize" />
-        <result column="object_key" property="objectKey" />
-        <result column="identifier" property="identifier" />
-        <result column="del" property="del" />
-        <result column="gmt_modified" property="gmtModified" />
-        <result column="gmt_create" property="gmtCreate" />
+        <id column="id" property="id"/>
+        <result column="account_id" property="accountId"/>
+        <result column="file_name" property="fileName"/>
+        <result column="file_suffix" property="fileSuffix"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="object_key" property="objectKey"/>
+        <result column="identifier" property="identifier"/>
+        <result column="del" property="del"/>
+        <result column="gmt_modified" property="gmtModified"/>
+        <result column="gmt_create" property="gmtCreate"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->

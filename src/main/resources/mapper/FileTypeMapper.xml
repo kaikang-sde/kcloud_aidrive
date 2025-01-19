@@ -4,8 +4,8 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.kang.model.FileTypeDO">
-        <id column="id" property="id" />
-        <result column="file_type_name" property="fileTypeName" />
+        <id column="id" property="id"/>
+        <result column="file_type_name" property="fileTypeName"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->

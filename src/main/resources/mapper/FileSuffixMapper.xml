@@ -4,9 +4,9 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.kang.model.FileSuffixDO">
-        <id column="id" property="id" />
-        <result column="file_suffix" property="fileSuffix" />
-        <result column="file_type_id" property="fileTypeId" />
+        <id column="id" property="id"/>
+        <result column="file_suffix" property="fileSuffix"/>
+        <result column="file_type_id" property="fileTypeId"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->

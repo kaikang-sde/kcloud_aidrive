@@ -4,12 +4,12 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.kang.model.ShareFileDO">
-        <id column="id" property="id" />
-        <result column="share_id" property="shareId" />
-        <result column="account_file_id" property="accountFileId" />
-        <result column="account_id" property="accountId" />
-        <result column="gmt_create" property="gmtCreate" />
-        <result column="gmt_modified" property="gmtModified" />
+        <id column="id" property="id"/>
+        <result column="share_id" property="shareId"/>
+        <result column="account_file_id" property="accountFileId"/>
+        <result column="account_id" property="accountId"/>
+        <result column="gmt_create" property="gmtCreate"/>
+        <result column="gmt_modified" property="gmtModified"/>
     </resultMap>
 
     <!-- 通用查询结果列 -->
