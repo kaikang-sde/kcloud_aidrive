@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JsonData {
 
+
     private Integer code;
     private Object data;
     private String msg;
