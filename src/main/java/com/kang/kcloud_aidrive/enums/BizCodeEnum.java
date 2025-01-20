@@ -19,7 +19,7 @@ public enum BizCodeEnum {
     /**
      * files related
      */
-    FILE_NOT_EXISTS(220404, "he file does not exist."),
+    FILE_NOT_EXISTS(220404, "The file does not exist."),
     FILE_RENAME_REPEAT(220405, "Duplicate file name."),
     FILE_DEL_BATCH_ILLEGAL(220406, "File deletion parameter error."),
     FILE_TYPE_ERROR(220407, "Incorrect file type."),

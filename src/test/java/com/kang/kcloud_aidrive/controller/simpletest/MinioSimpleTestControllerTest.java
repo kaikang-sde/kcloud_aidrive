@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,7 +52,7 @@ public class MinioSimpleTestControllerTest {
         when(minioConfig.getAccessSecret()).thenReturn(accessSecret);
         when(minioConfig.getEndpoint()).thenReturn(endpoint);
 
-        JsonData response = minioSimpleTestController.testUpload(mockMultipartFile);
+        ResponseEntity<JsonData> response = minioSimpleTestController.testUpload(mockMultipartFile);
         System.out.println(response);
 
         verify(minioClient).putObject(any(PutObjectArgs.class));
@@ -72,9 +73,9 @@ public class MinioSimpleTestControllerTest {
         when(minioConfig.getBucketName()).thenReturn(bucketName);
         doThrow(new RuntimeException("Upload failed")).when(minioClient).putObject(any(PutObjectArgs.class));
 
-        JsonData response = minioSimpleTestController.testUpload(mockMultipartFile);
+        ResponseEntity<JsonData> response = minioSimpleTestController.testUpload(mockMultipartFile);
         System.out.println(response);
         verify(minioClient).putObject(any(PutObjectArgs.class));
-        assertEquals("Upload failed", response.getMsg());
+        assertEquals("Upload failed", response.getBody().getMsg());
     }
 }
