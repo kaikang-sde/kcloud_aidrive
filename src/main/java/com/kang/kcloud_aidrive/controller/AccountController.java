@@ -11,10 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Account Controller API
@@ -43,7 +41,7 @@ public class AccountController {
      * @return Success response
      */
     @PostMapping("/register")
-    @Tag(name = "Account APIs", description = "Account-specific API")
+    @Tag(name = "Account APIs", description = "Account-Register API")
     @Operation(summary = "Register a new account", description = "Registers a new account",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JsonData.class),
@@ -63,7 +61,7 @@ public class AccountController {
                                             {
                                                 "code": -1,
                                                 "data": {},
-                                                "msg": "",
+                                                "msg": "error message",
                                                 "success": false
                                             }
                                             """
@@ -77,5 +75,46 @@ public class AccountController {
             return ResponseEntity.internalServerError().body(JsonData.buildError(e.getMessage()));
         }
         return ResponseEntity.ok(JsonData.buildSuccess("Account registered successfully"));
+    }
+
+    /**
+     * Account Avatar Upload Interface
+     */
+
+    @PostMapping("/avatar")
+    @Tag(name = "Account APIs", description = "Avatar Upload API")
+    @Operation(summary = "Register a new account", description = "Registers a new account",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Success", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JsonData.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code": 0,
+                                                "data": {},
+                                                "msg": "Avatar uploaded successfully - URL",
+                                                "success": true
+                                            }
+                                            """
+                            ))),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error", content = @Content(mediaType = "application/json", schema = @Schema(implementation = JsonData.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "code": -1,
+                                                "data": {},
+                                                "msg": "error message",
+                                                "success": false
+                                            }
+                                            """
+                            )))
+            }
+    )
+    public ResponseEntity<JsonData> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            String url = accountService.uploadAvatar(file);
+            return ResponseEntity.ok(JsonData.buildSuccess("Avatar uploaded successfully - " + url));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(JsonData.buildError(e.getMessage()));
+        }
     }
 }
