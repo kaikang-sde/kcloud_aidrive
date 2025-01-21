@@ -25,7 +25,8 @@ public class KcloudAidriveApplication {
                         "Application '{}' is running! Access URLs:\n\t" +
                         "Local: \t\thttp://localhost:{}\n\t" +
                         "External: \thttp://{}:{}\n\t" +
-                        "API文档: \thttp://{}:{}/swagger-ui/index.html\n" +
+                        "API文档: \thttp://{}:{}/swagger-ui/index.html\n\t" +
+                        "MinIO UI: \thttp://54.163.61.180:9001\n" +
                         "----------------------------------------------------------",
                 env.getProperty("spring.application.name"),
                 env.getProperty("server.port"),

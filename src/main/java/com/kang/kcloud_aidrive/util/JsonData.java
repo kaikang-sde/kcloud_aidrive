@@ -45,6 +45,9 @@ public class JsonData {
     public static JsonData buildSuccess(Object data) {
         return new JsonData(0, data, null);
     }
+    public static JsonData buildSuccess(String msg) {
+        return new JsonData(0, null, msg);
+    }
 
     /**
      * Constructor - Failed, provide description details
