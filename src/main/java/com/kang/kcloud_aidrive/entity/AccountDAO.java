@@ -62,7 +62,7 @@ public class AccountDAO implements Serializable {
     @Column(name = "est_create", insertable = false, updatable = false)
     private Date estCreate;
 
-    @Schema(description = "Update Time - EST")
+    @Schema(description = "Modified Time - EST")
     @Column(name = "est_modified", insertable = false)
     private Date estModified;
 }
