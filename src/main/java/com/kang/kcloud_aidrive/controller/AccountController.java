@@ -1,8 +1,13 @@
 package com.kang.kcloud_aidrive.controller;
 
+import com.kang.kcloud_aidrive.controller.req.AccountLoginReq;
 import com.kang.kcloud_aidrive.controller.req.AccountRegisterReq;
+import com.kang.kcloud_aidrive.dto.AccountDTO;
+import com.kang.kcloud_aidrive.enums.BizCodeEnum;
+import com.kang.kcloud_aidrive.interceptor.LoginInterceptor;
 import com.kang.kcloud_aidrive.service.AccountService;
 import com.kang.kcloud_aidrive.util.JsonData;
+import com.kang.kcloud_aidrive.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -11,8 +16,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
  * Account Controller API
@@ -40,7 +47,7 @@ public class AccountController {
      * @param req Account registration request
      * @return Success response
      */
-    @PostMapping("/register")
+    @PostMapping("register")
     @Tag(name = "Account APIs", description = "Account-Register API")
     @Operation(summary = "Register a new account", description = "Registers a new account",
             responses = {
@@ -81,7 +88,7 @@ public class AccountController {
      * Account Avatar Upload Interface
      */
 
-    @PostMapping("/avatar")
+    @PostMapping("avatar")
     @Tag(name = "Account APIs", description = "Avatar Upload API")
     @Operation(summary = "Register a new account", description = "Registers a new account",
             responses = {
@@ -116,5 +123,21 @@ public class AccountController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(JsonData.buildError(e.getMessage()));
         }
+    }
+
+    @PostMapping("login")
+    public ResponseEntity<JsonData> login(@RequestBody AccountLoginReq req) {
+        AccountDTO accountDTO = accountService.login(req);
+
+        // jwt token - front end (localStorage or sessionStorage)
+        String token = JwtUtil.geneLoginJWT(accountDTO);
+
+        return ResponseEntity.ok(JsonData.buildSuccess(token));
+    }
+
+    @GetMapping("detail")
+    public ResponseEntity<JsonData> detail() {
+        AccountDTO accountDTO = accountService.queryDetail(LoginInterceptor.threadLocal.get().getId());
+        return ResponseEntity.ok(JsonData.buildSuccess(accountDTO));
     }
 }
