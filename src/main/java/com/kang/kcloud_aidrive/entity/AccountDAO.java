@@ -23,7 +23,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name = "account")
 @Entity
 @Filter(name = "deletedFilter", condition = "del = :isDeleted")
-@Schema(name = "AccountDO", description = "User Account Table")
+@Schema(name = "AccountDAO", description = "User Account Table")
 public class AccountDAO implements Serializable {
 
     private static final long serialVersionUID = 1L;

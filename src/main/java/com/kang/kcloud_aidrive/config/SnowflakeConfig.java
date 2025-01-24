@@ -2,7 +2,6 @@ package com.kang.kcloud_aidrive.config;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.Serializable;
 

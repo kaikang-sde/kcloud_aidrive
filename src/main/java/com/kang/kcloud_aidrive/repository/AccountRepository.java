@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AccountRepository extends JpaRepository<AccountDAO, Long> {
     List<AccountDAO> findByPhone(String phone);
+    AccountDAO findByPhoneAndPassword(String phone, String password);
 }
