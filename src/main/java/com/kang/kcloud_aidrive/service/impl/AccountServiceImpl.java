@@ -1,6 +1,5 @@
 package com.kang.kcloud_aidrive.service.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.kang.kcloud_aidrive.component.StorageEngine;
 import com.kang.kcloud_aidrive.config.AccountConfig;
 import com.kang.kcloud_aidrive.config.MinioConfig;
@@ -21,12 +20,9 @@ import com.kang.kcloud_aidrive.repository.StorageRepository;
 import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.service.AccountService;
 import com.kang.kcloud_aidrive.util.CommonUtil;
-import com.kang.kcloud_aidrive.util.JsonData;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.core.utils.SpringDocUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,13 +39,15 @@ public class AccountServiceImpl implements AccountService {
     private final MinioConfig minioConfig;
     private final StorageRepository storageRepository;
     private final AccountFileRepository accountFileRepository;
+    private final AccountFileService accountFileService;
 
-    public AccountServiceImpl(StorageEngine fileStorageEngine, AccountRepository accountRepository, MinioConfig minioConfig, StorageRepository storageRepository, AccountFileRepository accountFileRepository) {
+    public AccountServiceImpl(StorageEngine fileStorageEngine, AccountRepository accountRepository, MinioConfig minioConfig, StorageRepository storageRepository, AccountFileRepository accountFileRepository, AccountFileService accountFileService) {
         this.fileStorageEngine = fileStorageEngine;
         this.accountRepository = accountRepository;
         this.minioConfig = minioConfig;
         this.storageRepository = storageRepository;
         this.accountFileRepository = accountFileRepository;
+        this.accountFileService = accountFileService;
     }
 
 
@@ -87,8 +85,6 @@ public class AccountServiceImpl implements AccountService {
                 .build();
 
         accountFileService.createFolder(rootFolderReq);
-
-
     }
 
     @Override

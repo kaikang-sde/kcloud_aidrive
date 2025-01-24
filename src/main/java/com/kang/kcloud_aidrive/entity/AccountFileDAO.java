@@ -2,10 +2,7 @@ package com.kang.kcloud_aidrive.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
@@ -23,6 +20,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
+@Entity
 @Table(name = "account_file")
 @Schema(name = "AccountFileDAO", description = "user file table")
 public class AccountFileDAO implements Serializable {

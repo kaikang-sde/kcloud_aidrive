@@ -2,7 +2,6 @@ package com.kang.kcloud_aidrive.mapper;
 
 import com.kang.kcloud_aidrive.model.AccountDO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * <p>

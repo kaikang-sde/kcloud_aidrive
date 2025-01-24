@@ -1,9 +1,11 @@
 package com.kang.kcloud_aidrive.controller.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class AccountRegisterReq {
     @Schema(name = "username", example = "kai", requiredMode = Schema.RequiredMode.REQUIRED)
     private String username;

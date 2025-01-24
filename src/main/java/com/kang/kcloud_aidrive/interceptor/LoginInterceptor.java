@@ -5,7 +5,6 @@ import com.kang.kcloud_aidrive.enums.BizCodeEnum;
 import com.kang.kcloud_aidrive.util.CommonUtil;
 import com.kang.kcloud_aidrive.util.JsonData;
 import com.kang.kcloud_aidrive.util.JwtUtil;
-import io.jsonwebtoken.ClaimJwtException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

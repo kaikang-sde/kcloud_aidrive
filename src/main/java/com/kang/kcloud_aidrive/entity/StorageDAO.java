@@ -4,10 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
@@ -22,6 +19,7 @@ import org.hibernate.annotations.GenericGenerator;
  */
 @Getter
 @Setter
+@Entity
 @Table(name = "storage")
 @Schema(name = "StorageDAO", description = "Storage Information Table")
 public class StorageDAO implements Serializable {
