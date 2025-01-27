@@ -16,11 +16,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * The LoginInterceptor is a ThreadLocal-based interceptor
+ * used to validate user login status and store the logged-in user’s information within the current thread.
+ * Author: Kai Kang
+ */
 @Slf4j
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
+    // ThreadLocal is a thread-local variable that is bound to the lifecycle of the current thread.
+    // Each thread has its own independent ThreadLocal value, which does not interfere with others.
     public static ThreadLocal<AccountDTO> threadLocal = new ThreadLocal<>();
 
+    // The preHandle method of the interceptor is executed before the Controller method runs.
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // Option request is not intercepted

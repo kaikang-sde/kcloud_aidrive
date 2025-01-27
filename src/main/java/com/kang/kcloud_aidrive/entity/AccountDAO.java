@@ -28,7 +28,6 @@ public class AccountDAO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "ID")
     @Id
     @GeneratedValue(generator = "snowflake")
     @GenericGenerator(name = "snowflake", strategy = "com.kang.kcloud_aidrive.config.SnowflakeConfig")

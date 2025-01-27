@@ -15,7 +15,7 @@ public class FolderCreateReq {
     private String folderName;
     @Schema(name = "parent id", example = "321", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long parentId;
-    @Schema(name = "account id", example = "123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(name = "account id", example = "123")
     private Long accountId;
 
 }

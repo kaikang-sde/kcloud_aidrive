@@ -63,10 +63,10 @@ public class FileDAO implements Serializable {
     private Boolean del;
 
     @Schema(description = "更新时间")
-    @Column(name = "est_modified")
+    @Column(name = "est_create", insertable = false, updatable = false)
     private Date estModified;
 
     @Schema(description = "创建时间")
-    @Column(name = "est_create")
+    @Column(name = "est_modified", insertable = false)
     private Date estCreate;
 }

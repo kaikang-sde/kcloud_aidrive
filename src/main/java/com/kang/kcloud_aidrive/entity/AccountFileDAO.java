@@ -75,10 +75,10 @@ public class AccountFileDAO implements Serializable {
     private Date delTime;
 
     @Schema(description = "Modified Time - EST")
-    @Column(name = "est_modified")
+    @Column(name = "est_create", insertable = false, updatable = false)
     private Date estModified;
 
     @Schema(description = "Created Time - EST")
-    @Column(name = "est_create")
+    @Column(name = "est_modified", insertable = false)
     private Date estCreate;
 }
