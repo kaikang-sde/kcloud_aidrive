@@ -3,6 +3,7 @@ package com.kang.kcloud_aidrive.controller;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
+import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.interceptor.LoginInterceptor;
 import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.util.JsonData;
@@ -103,5 +104,14 @@ public class AccountFileController {
         return ResponseEntity.ok(JsonData.buildSuccess("File renamed successfully with new name: " + req.getNewFileName()));
     }
 
-
+    /**
+     * query fileTree
+     */
+    @GetMapping("folder_tree")
+    public ResponseEntity<JsonData> folderTree() {
+        Long accountId = LoginInterceptor.threadLocal.get().getId();
+        List<FolderTreeNodeDTO> list = accountFileService.folderTreeV1(accountId);
+        // List<FolderTreeNodeDTO> list = accountFileService.folderTreeV2(accountId);
+        return ResponseEntity.ok(JsonData.buildSuccess(list));
+    }
 }

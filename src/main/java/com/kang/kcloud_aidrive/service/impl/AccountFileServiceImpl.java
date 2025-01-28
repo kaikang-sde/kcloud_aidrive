@@ -1,9 +1,9 @@
 package com.kang.kcloud_aidrive.service.impl;
 
-import com.google.common.base.Objects;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
+import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAO;
 import com.kang.kcloud_aidrive.enums.BizCodeEnum;
 import com.kang.kcloud_aidrive.enums.FolderFlagEnum;
@@ -12,22 +12,27 @@ import com.kang.kcloud_aidrive.repository.AccountFileRepository;
 import com.kang.kcloud_aidrive.repository.FileRepository;
 import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class AccountFileServiceImpl implements AccountFileService {
 
     private final AccountFileRepository accountFileRepository;
+    private final FileRepository fileRepository;
 
     public AccountFileServiceImpl(AccountFileRepository accountFileRepository, FileRepository fileRepository) {
         this.accountFileRepository = accountFileRepository;
+        this.fileRepository = fileRepository;
     }
 
     @Override
@@ -45,7 +50,7 @@ public class AccountFileServiceImpl implements AccountFileService {
             throw new BizException(BizCodeEnum.FILE_NOT_EXISTS);
         } else {
             // new file name and current file name cannot be the same
-            if (Objects.equal(accountFileDAO.getFileName(), req.getNewFileName())) {
+            if (Objects.equals(accountFileDAO.getFileName(), req.getNewFileName())) {
                 log.error("File name is already exist, {}", req);
                 throw new BizException(BizCodeEnum.FILE_RENAME_REPEAT);
             } else {
@@ -59,6 +64,90 @@ public class AccountFileServiceImpl implements AccountFileService {
                 }
             }
         }
+    }
+
+    // 非递归的方式
+    @Override
+    public List<FolderTreeNodeDTO> folderTreeV1(Long accountId) {
+        // 查询当前用户的所有文件夹
+        List<AccountFileDAO> folderList = accountFileRepository.findByAccountIdAndIsDir(accountId, FolderFlagEnum.YES.getCode());
+
+        // 拼装文件夹树列表
+        if (CollectionUtils.isEmpty(folderList)) {
+            return List.of();
+        }
+
+        // 构建一个Map/数据源， 避免数据库查找，key为文件夹ID，value为FolderTreeNodeDTO对象
+        Map<Long, FolderTreeNodeDTO> folderMap = folderList.stream()
+                .collect(Collectors.toMap(
+                        AccountFileDAO::getId,
+                        AccountFileDAO -> FolderTreeNodeDTO.builder()
+                                .id(AccountFileDAO.getId())
+                                .parentId(AccountFileDAO.getParentId())
+                                .label(AccountFileDAO.getFileName())
+                                .children(new ArrayList<>())
+                                .build()));
+
+
+        // 构建文件夹树，遍历文件夹映射，为每个文件夹找到其子文件夹
+        for (FolderTreeNodeDTO node : folderMap.values()) {
+            // 获取当前文件夹的父ID
+            Long parentId = node.getParentId();
+            // 如果父ID不为空且父ID在文件夹映射中存在，则将当前文件夹添加到其父文件夹的子文件夹列表中
+            if (parentId != null && folderMap.containsKey(parentId)) {
+                // 获取父文件夹
+                FolderTreeNodeDTO parentNode = folderMap.get(parentId);
+                // 获取父文件夹的子文件夹列表
+                List<FolderTreeNodeDTO> children = parentNode.getChildren();
+                // 将当前文件夹添加到子文件夹列表中
+                children.add(node);
+            }
+        }
+
+        // 返回根节点（parentId为0的节点）过滤出根文件夹即可,里面包括多个
+        List<FolderTreeNodeDTO> rootFolderList = folderMap.values().stream()
+                .filter(node -> Objects.equals(node.getParentId(), 0L))
+                .collect(Collectors.toList());
+        return rootFolderList;
+
+    }
+
+    // 分组的方式 - 也是非递归的
+    @Override
+    public List<FolderTreeNodeDTO> folderTreeV2(Long accountId) {
+        // 查询当前用户的所有文件夹
+        List<AccountFileDAO> folderList = accountFileRepository.findByAccountIdAndIsDir(accountId, FolderFlagEnum.YES.getCode());
+
+        // 拼装文件夹树列表
+        if (CollectionUtils.isEmpty(folderList)) {
+            return List.of();
+        }
+
+        // 构建一个Map/数据源， 避免数据库查找，key为parentId，value为当前文件夹下的所有子文件夹
+        List<FolderTreeNodeDTO> folderTreeNodeDTOList = folderList.stream().map(file -> {
+            return FolderTreeNodeDTO.builder()
+                    .id(file.getId())
+                    .parentId(file.getParentId())
+                    .label(file.getFileName())
+                    .children(new ArrayList<>())
+                    .build();
+        }).toList();
+
+        // 根据父文件夹进行分组 key是当前文件夹ID，value是当前文件夹下的所有子文件夹
+        Map<Long, List<FolderTreeNodeDTO>> folderMap = folderTreeNodeDTOList.stream()
+                .collect(Collectors.groupingBy(FolderTreeNodeDTO::getParentId));
+
+        for (FolderTreeNodeDTO node : folderTreeNodeDTOList) {
+            List<FolderTreeNodeDTO> children = folderMap.get(node.getId());
+            //判断列表是否为空, 不为空，挂载
+            if (!CollectionUtils.isEmpty(children)) {
+                node.getChildren().addAll(children);
+            }
+        }
+
+        // 返回根节点（parentId为0的节点）过滤出根文件夹即可,里面包括多个
+        return folderTreeNodeDTOList.stream().filter(node -> Objects.equals(node.getParentId(), 0L)).collect(Collectors.toList());
+
     }
 
     @Override
@@ -101,7 +190,7 @@ public class AccountFileServiceImpl implements AccountFileService {
         );
         if (selectedAccount > 0) {
             // duplicated folder
-            if (Objects.equal(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
+            if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
                 accountFileDAO.setFileName(accountFileDAO.getFileName() + "_" + System.currentTimeMillis());
             } else { // duplicated filename,
                 String[] split = accountFileDAO.getFileName().split("\\.");

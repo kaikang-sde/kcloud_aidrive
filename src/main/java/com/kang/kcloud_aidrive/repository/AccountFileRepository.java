@@ -37,4 +37,7 @@ public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Lon
     @Query(value = "UPDATE account_file SET file_name = :fileName WHERE id = :id", nativeQuery = true)
     int updateFileNameByIdNative(@Param("id") Long id, @Param("fileName") String fileName);
 
+
+    List<AccountFileDAO> findByAccountIdAndIsDir(Long accountId, Integer isDir);
+
 }
