@@ -66,9 +66,9 @@ public class AccountFileDAO implements Serializable {
     private Long fileSize;
 
     @Schema(description = "Logical Deletion - 1 deleted, 0 not deleted")
-    @Column(name = "del")
+    @Column(name = "del", nullable = false, columnDefinition = "TINYINT(1)")
     @TableLogic
-    private Boolean del;
+    private Boolean del = false;
 
     @Schema(description = "delete time")
     @Column(name = "del_time")
@@ -81,4 +81,11 @@ public class AccountFileDAO implements Serializable {
     @Schema(description = "Created Time - EST")
     @Column(name = "est_modified", insertable = false)
     private Date estCreate;
+
+    @PrePersist
+    public void prePersist() {
+        if (del == null) {
+            del = false;
+        }
+    }
 }

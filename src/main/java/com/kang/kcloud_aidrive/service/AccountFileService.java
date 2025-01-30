@@ -1,6 +1,7 @@
 package com.kang.kcloud_aidrive.service;
 
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
+import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
@@ -17,4 +18,6 @@ public interface AccountFileService {
     List<FolderTreeNodeDTO> folderTreeV1(Long accountId);
 
     List<FolderTreeNodeDTO> folderTreeV2(Long accountId);
+
+    void uploadFile(FileUploadReq req);
 }

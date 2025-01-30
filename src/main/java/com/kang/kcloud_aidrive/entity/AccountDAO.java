@@ -54,7 +54,7 @@ public class AccountDAO implements Serializable {
     private String role;
 
     @Schema(description = "Logical Deletion - 1 deleted, 0 not deleted")
-    @Column(name = "del", nullable = false)
+    @Column(name = "del", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean del = false;
 
     @Schema(description = "Created Time - EST")
@@ -64,4 +64,11 @@ public class AccountDAO implements Serializable {
     @Schema(description = "Modified Time - EST")
     @Column(name = "est_modified", insertable = false)
     private Date estModified;
+
+    @PrePersist
+    public void prePersist() {
+        if (del == null) {
+            del = false;
+        }
+    }
 }

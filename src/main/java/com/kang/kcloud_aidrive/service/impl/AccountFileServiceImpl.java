@@ -1,16 +1,22 @@
 package com.kang.kcloud_aidrive.service.impl;
 
+import com.kang.kcloud_aidrive.component.StorageEngine;
+import com.kang.kcloud_aidrive.config.MinioConfig;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
+import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAO;
+import com.kang.kcloud_aidrive.entity.FileDAO;
 import com.kang.kcloud_aidrive.enums.BizCodeEnum;
+import com.kang.kcloud_aidrive.enums.FileTypeEnum;
 import com.kang.kcloud_aidrive.enums.FolderFlagEnum;
 import com.kang.kcloud_aidrive.exception.BizException;
 import com.kang.kcloud_aidrive.repository.AccountFileRepository;
 import com.kang.kcloud_aidrive.repository.FileRepository;
 import com.kang.kcloud_aidrive.service.AccountFileService;
+import com.kang.kcloud_aidrive.util.CommonUtil;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +34,14 @@ import java.util.stream.Collectors;
 public class AccountFileServiceImpl implements AccountFileService {
 
     private final AccountFileRepository accountFileRepository;
+    private final StorageEngine fileStorageEngine;
+    private final MinioConfig minioConfig;
     private final FileRepository fileRepository;
 
-    public AccountFileServiceImpl(AccountFileRepository accountFileRepository, FileRepository fileRepository) {
+    public AccountFileServiceImpl(AccountFileRepository accountFileRepository, StorageEngine fileStorageEngine, MinioConfig minioConfig, FileRepository fileRepository) {
         this.accountFileRepository = accountFileRepository;
+        this.fileStorageEngine = fileStorageEngine;
+        this.minioConfig = minioConfig;
         this.fileRepository = fileRepository;
     }
 
@@ -148,6 +158,57 @@ public class AccountFileServiceImpl implements AccountFileService {
         // 返回根节点（parentId为0的节点）过滤出根文件夹即可,里面包括多个
         return folderTreeNodeDTOList.stream().filter(node -> Objects.equals(node.getParentId(), 0L)).collect(Collectors.toList());
 
+    }
+
+    // small file upload
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void uploadFile(FileUploadReq req) {
+        // 1. upload to MinIO via S3Client
+        String storeFileObjectKey = storeFile(req);
+
+        // 2. save file relationship
+        saveFileAndAccountFile(req, storeFileObjectKey);
+
+        // 3. save relationship between user and file
+
+
+    }
+
+    // save the relationship between file and account file to DB
+    public void saveFileAndAccountFile(FileUploadReq req, String storeFileObjectKey) {
+        FileDAO fileDAO = saveFile(req, storeFileObjectKey);
+
+        AccountFileDTO accountFileDTO = AccountFileDTO.builder()
+                .accountId(req.getAccountId())
+                .parentId(req.getParentId())
+                .fileId(fileDAO.getId())
+                .fileName(fileDAO.getFileName())
+                .isDir(FolderFlagEnum.NO.getCode())
+                .fileSuffix(fileDAO.getFileSuffix())
+                .fileSize(req.getFileSize())
+                .fileType(FileTypeEnum.fromExtension(fileDAO.getFileSuffix()).name())
+                .build();
+        saveAccountFile(accountFileDTO);
+    }
+
+    private FileDAO saveFile(FileUploadReq req, String storeFileObjectKey) {
+        FileDAO fileDAO = new FileDAO();
+        fileDAO.setAccountId(req.getAccountId());
+        fileDAO.setFileName(req.getFileName());
+        fileDAO.setFileSize(req.getFile() != null ? req.getFile().getSize() : req.getFileSize());
+        fileDAO.setFileSuffix(CommonUtil.getFileSuffix(req.getFileName()));
+        fileDAO.setIdentifier(req.getIdentifier());
+        fileDAO.setObjectKey(storeFileObjectKey);
+        fileRepository.save(fileDAO);
+        return fileDAO;
+
+    }
+
+    private String storeFile(FileUploadReq req) {
+        String fileName = CommonUtil.getFilePath(req.getFileName());
+        fileStorageEngine.upload(minioConfig.getBucketName(), fileName, req.getFile());
+        return fileName;
     }
 
     @Override
