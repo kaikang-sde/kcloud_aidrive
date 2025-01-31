@@ -1,5 +1,6 @@
 package com.kang.kcloud_aidrive.mapper;
 
+import com.kang.kcloud_aidrive.entity.AccountFileDAO;
 import com.kang.kcloud_aidrive.model.AccountFileDO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -11,6 +12,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author Kai Kang,
  * @since 2025-01-19
  */
-public interface AccountFileMapper extends BaseMapper<AccountFileDO> {
+public interface AccountFileMapper extends BaseMapper<AccountFileDAO> {
 
 }

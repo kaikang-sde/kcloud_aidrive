@@ -1,5 +1,6 @@
 package com.kang.kcloud_aidrive.service;
 
+import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
 import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
@@ -20,4 +21,7 @@ public interface AccountFileService {
     List<FolderTreeNodeDTO> folderTreeV2(Long accountId);
 
     void uploadFile(FileUploadReq req);
+
+    void batchMove(FileBatchReq req);
+
 }

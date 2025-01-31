@@ -1,5 +1,6 @@
 package com.kang.kcloud_aidrive.controller;
 
+import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
 import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
@@ -109,7 +110,7 @@ public class AccountFileController {
     /**
      * query fileTree
      */
-    @GetMapping("folder_tree")
+    @GetMapping("folder-tree")
     @Operation(summary = "get all folders in the current Account ID")
     public ResponseEntity<JsonData> folderTree() {
         Long accountId = LoginInterceptor.threadLocal.get().getId();
@@ -121,11 +122,19 @@ public class AccountFileController {
     /**
      * small file upload
      */
-    @PostMapping("small_file")
+    @PostMapping("small-file")
     @Operation(summary = "small file upload")
     public ResponseEntity<JsonData> upload(FileUploadReq req) {
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
         accountFileService.uploadFile(req);
         return ResponseEntity.ok(JsonData.buildSuccess("File uploaded successfully"));
+    }
+
+    @PostMapping("batch-move")
+    @Operation(summary = "file batch move operations")
+    public ResponseEntity<JsonData> batchMove(@RequestBody FileBatchReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        accountFileService.batchMove(req);
+        return ResponseEntity.ok(JsonData.buildSuccess());
     }
 }

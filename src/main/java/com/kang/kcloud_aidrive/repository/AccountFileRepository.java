@@ -12,18 +12,22 @@ import java.util.List;
 
 @Repository
 public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Long> {
+
+    List<AccountFileDAO> findByParentId(Long parentId);
+
     AccountFileDAO findByAccountIdAndParentId(Long accountId, Long parentId);
 
     AccountFileDAO findByIdAndAccountId(Long id, Long accountId);
 
 
-    int countByAccountIdAndParentIdAndIsDirAndFileName(Long accountId, Long parentId, Integer isDir, String fileName);
+    Long countByAccountIdAndParentIdAndIsDirAndFileName(Long accountId, Long parentId, Integer isDir, String fileName);
+
 
     List<AccountFileDAO> findByAccountIdAndParentIdOrderByIsDirDescEstCreateDesc(Long accountId, Long parentId);
 
     AccountFileDAO findByFileIdAndAccountId(Long fileId, Long accountId);
 
-    int countByAccountIdAndParentIdAndFileName(Long accountId, Long parentId, String fileName);
+    Long countByAccountIdAndParentIdAndFileName(Long accountId, Long parentId, String fileName);
 
     /**
      * Custom Query: high performance - sends a raw UPDATE query directly to the database:
@@ -40,4 +44,14 @@ public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Lon
 
     List<AccountFileDAO> findByAccountIdAndIsDir(Long accountId, Integer isDir);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE AccountFileDAO af SET af.parentId = :targetParentId WHERE af.id IN :fileIds")
+    int updateParentIdForFileIds(@Param("fileIds") List<Long> fileIds, @Param("targetParentId") Long targetParentId);
+
+
+    List<AccountFileDAO> findByIdInAndAccountId(List<Long> fileIdList, Long accountId);
+
+
+    AccountFileDAO findByIdAndIsDirAndAccountId(Long targetParentId, Integer code, Long accountId);
 }

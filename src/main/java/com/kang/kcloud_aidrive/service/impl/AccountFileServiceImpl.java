@@ -1,7 +1,9 @@
 package com.kang.kcloud_aidrive.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.kang.kcloud_aidrive.component.StorageEngine;
 import com.kang.kcloud_aidrive.config.MinioConfig;
+import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
 import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
 import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
 import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
@@ -13,6 +15,7 @@ import com.kang.kcloud_aidrive.enums.BizCodeEnum;
 import com.kang.kcloud_aidrive.enums.FileTypeEnum;
 import com.kang.kcloud_aidrive.enums.FolderFlagEnum;
 import com.kang.kcloud_aidrive.exception.BizException;
+import com.kang.kcloud_aidrive.mapper.AccountFileMapper;
 import com.kang.kcloud_aidrive.repository.AccountFileRepository;
 import com.kang.kcloud_aidrive.repository.FileRepository;
 import com.kang.kcloud_aidrive.service.AccountFileService;
@@ -20,6 +23,7 @@ import com.kang.kcloud_aidrive.util.CommonUtil;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -55,6 +59,7 @@ public class AccountFileServiceImpl implements AccountFileService {
     @Transactional
     public void renameFile(FileUpdateReq req) {
         AccountFileDAO accountFileDAO = accountFileRepository.findByIdAndAccountId(req.getFileId(), req.getAccountId());
+
         if (accountFileDAO == null) {
             log.error("File not exists, {}", req);
             throw new BizException(BizCodeEnum.FILE_NOT_EXISTS);
@@ -65,7 +70,8 @@ public class AccountFileServiceImpl implements AccountFileService {
                 throw new BizException(BizCodeEnum.FILE_RENAME_REPEAT);
             } else {
                 // Same dir, cannot have the same file name
-                if (accountFileRepository.countByAccountIdAndParentIdAndFileName(req.getAccountId(), accountFileDAO.getParentId(), req.getNewFileName()) > 0) {
+                Long selectedCount = accountFileRepository.countByAccountIdAndParentIdAndFileName(req.getAccountId(), accountFileDAO.getParentId(), req.getNewFileName());
+                if (selectedCount > 0) {
                     log.error("File name is already exist, {}", req);
                     throw new BizException(BizCodeEnum.FILE_RENAME_REPEAT);
                 } else {
@@ -167,12 +173,86 @@ public class AccountFileServiceImpl implements AccountFileService {
         // 1. upload to MinIO via S3Client
         String storeFileObjectKey = storeFile(req);
 
-        // 2. save file relationship
+        // 2. save file relationship + save relationship between user and file
         saveFileAndAccountFile(req, storeFileObjectKey);
+    }
 
-        // 3. save relationship between user and file
+    /**
+     * 1. 检查被转移的文件ID是否合法
+     * 2. 检查目标文件夹ID是否合法,需要包括子文件夹
+     * 3. 批量转移文件到目标文件夹 (处理重复文件名)
+     * 4. 更新文件或文件夹的parentId为目标文件夹ID
+     *
+     * @param req
+     */
+    @Override
+    public void batchMove(FileBatchReq req) {
+        // Check whether the file IDs to be transferred are valid.
+        List<AccountFileDAO> accountFileDAOList = validateFileId(req.getFileIds(), req.getAccountId());
+
+        // Validate the target folder ID, ensuring it includes subfolders.
+        validateTargetParentId(req);
+
+        // Batch move files to the target folder (handle duplicate file names).
+        accountFileDAOList.forEach(file -> processDuplicatedFileName(file, req.getTargetParentId()));
+
+        // Update the parentId of files or folders to the target folder ID.
+        int updatedRows = accountFileRepository.updateParentIdForFileIds(req.getFileIds(), req.getTargetParentId());
+
+        if (updatedRows != req.getFileIds().size()) {
+            throw new BizException(BizCodeEnum.FILE_BATCH_UPDATE_ERROR);
+        }
+    }
 
 
+    private void validateTargetParentId(FileBatchReq req) {
+        // target fileId cannot be a file, must be folder
+        AccountFileDAO targetAccountFileDAO = accountFileRepository.
+                findByIdAndIsDirAndAccountId(
+                        req.getTargetParentId(),
+                        FolderFlagEnum.YES.getCode(),
+                        req.getAccountId());
+
+        if (targetAccountFileDAO == null) {
+            log.error("The target file id is not a folder, cannot move, targetParentId = {}", req.getTargetParentId());
+            throw new BizException(BizCodeEnum.FILE_NOT_EXISTS);
+        }
+
+        List<AccountFileDAO> preparedAccountFileDAOList = accountFileRepository.findByIdInAndAccountId(req.getFileIds(), req.getAccountId());
+
+        List<AccountFileDAO> allAccountFileDAOList = new ArrayList<>();
+        findAllAccountFileDAOByRecursion(allAccountFileDAOList, preparedAccountFileDAOList, false);
+        if (allAccountFileDAOList.stream().anyMatch(accountFileDAO -> Objects.equals(accountFileDAO.getId(), req.getTargetParentId()))) {
+            log.error("The target file id is not a folder, cannot move, targetParentId = {}", req.getTargetParentId());
+        }
+    }
+
+    private void findAllAccountFileDAOByRecursion(List<AccountFileDAO> allAccountFileDAOList, List<AccountFileDAO> preparedAccountFileDAOList, boolean onlyFolder) {
+        for (AccountFileDAO accountFileDAO : preparedAccountFileDAOList) {
+            if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
+                // 文件夹，递归获取子文件ID
+                List<AccountFileDAO> childrenAccountFileDAOList = accountFileRepository.findByParentId(accountFileDAO.getId());
+                findAllAccountFileDAOByRecursion(allAccountFileDAOList, childrenAccountFileDAOList, onlyFolder);
+            }
+
+            // not folder, store files
+            // 如果通过onlyFolder是true 只存储文件夹到allAccountFileDOList，否则都存储到allAccountFileDOList
+            if (!onlyFolder || Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
+                allAccountFileDAOList.add(accountFileDAO);
+            }
+        }
+    }
+
+
+    private List<AccountFileDAO> validateFileId(List<Long> fileIds, Long accountId) {
+        List<AccountFileDAO> accountFileDAOList = accountFileRepository.findByIdInAndAccountId(fileIds, accountId);
+        if (accountFileDAOList.size() != fileIds.size()) {
+            log.error("The number of files to be moved does not match the number of valid File id - fildIds: {}, accountId: {}", fileIds, accountId);
+            throw new BizException(BizCodeEnum.FILE_BATCH_UPDATE_ERROR);
+        }
+        // TODO: improvement - set to remove duplicate files
+
+        return accountFileDAOList;
     }
 
     // save the relationship between file and account file to DB
@@ -235,21 +315,25 @@ public class AccountFileServiceImpl implements AccountFileService {
         checkParentFileId(accountFileDTO);
         AccountFileDAO accountFileDAO = SpringBeanUtil.copyProperties(accountFileDTO, AccountFileDAO.class);
 
-        processDuplicatedFileName(accountFileDAO);
+        processDuplicatedFileName(accountFileDAO, null);
 
         accountFileRepository.save(accountFileDAO);
         return accountFileDAO.getId();
 
     }
 
-    private void processDuplicatedFileName(AccountFileDAO accountFileDAO) {
-        int selectedAccount = accountFileRepository.countByAccountIdAndParentIdAndIsDirAndFileName(
+    private void processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId) {
+        if (parentId == null) {
+            parentId = accountFileDAO.getParentId();
+        }
+        Long selectCount = accountFileRepository.countByAccountIdAndParentIdAndIsDirAndFileName(
                 accountFileDAO.getAccountId(),
-                accountFileDAO.getParentId(),
+                parentId,
                 accountFileDAO.getIsDir(),
                 accountFileDAO.getFileName()
         );
-        if (selectedAccount > 0) {
+
+        if (selectCount > 0) {
             // duplicated folder
             if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
                 accountFileDAO.setFileName(accountFileDAO.getFileName() + "_" + System.currentTimeMillis());
