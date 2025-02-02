@@ -2,14 +2,13 @@
 
 ## 📌 Table of Contents
 - [Introduction](#introduction)
+- [Project Status](#-project-status)
 - [Core Technology Stack](#core-technology-stack)
 - [Key Features](#key-features)
 - [Feature Comparison](#feature-comparison)
 - [System Architecture](#system-architecture)
-- [Quick Start](#quick-start)
 - [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- [Contact & Support](#-contact--support)
 
 ---
 
