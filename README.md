@@ -28,11 +28,12 @@ gantt
     title KCloud AIDrive Development Progress
     dateFormat  YYYY-MM-DD
     section Backend Development
-      AWS/Components Setup                   :done, setup, 2025-01-01, 2025-01-12
-      MinIO/S3 APIs           :done, s3, 2025-01-13, 2025-01-17
-      Account/User APIs       :done, users, 2025-01-19, 2025-01-24
-      File Management APIs    :active, files, 2025-01-24, 5d
-      More Sections           : after files
+      AWS/Components Setup                :done, setup, 2024-12-14, 2024-12-20
+      MySQL tables design                 :done, db, 2024-12-20, 2024-12-27
+      MinIO/S3 APIs                       :done, s3, 2025-01-01, 2025-01-15
+      Account User/Interceptor            :done, users, 2025-01-19, 2025-01-23
+      File Management                     :active, files, 2025-01-24, 5d
+      More Sections                       :after files
     section Frontend Development
         
     section AI Model Development
