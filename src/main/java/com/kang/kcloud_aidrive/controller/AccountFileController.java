@@ -132,13 +132,13 @@ public class AccountFileController {
     }
 
     /**
-     * Rapid upload
-     * true: rapid upload success
-     * false: rapid upload failed, need to invoke normal upload interface
+     * Instant upload
+     * true: Instant upload success - The server skip actual file transfer if the file already exists (e.g., via hash comparison).
+     * false: instant upload failed, need to invoke normal upload interface
      */
-    @PostMapping("uploads/rapid")
-    @Operation(summary = "Rapid upload")
-    public ResponseEntity<JsonData> rapidUpload(@RequestBody FileInstantUploadReq req) {
+    @PostMapping("uploads/instant")
+    @Operation(summary = "instant upload")
+    public ResponseEntity<JsonData> instantUpload(@RequestBody FileInstantUploadReq req) {
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
         boolean canRapidUpload = accountFileService.instantUpload(req);
         return ResponseEntity.ok(JsonData.buildSuccess(canRapidUpload));
