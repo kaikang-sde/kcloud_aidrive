@@ -3,6 +3,7 @@
 ## 📌 Table of Contents
 - [Introduction](#introduction)
 - [Project Status](#-project-status)
+- [Project Progress Tracking](#-project-progress-tracking)
 - [Core Technology Stack](#core-technology-stack)
 - [Key Features](#key-features)
 - [Feature Comparison](#feature-comparison)
@@ -22,18 +23,37 @@
 🚧 **Under Active Development** 🚧  
 This project is currently in active development. New features, optimizations, and AI integrations are continuously being added. Stay tuned for updates!
 
+### 🚀 Project Progress Tracking
+```mermaid
+gantt
+    title KCloud AIDrive Development Progress
+    dateFormat  YYYY-MM-DD
+    section Backend Development
+      AWS/Components Setup                :done, setup, 2024-12-14, 2024-12-20
+      MySQL tables design                 :done, db, 2024-12-20, 2024-12-27
+      MinIO/S3 APIs                       :done, s3, 2025-01-01, 2025-01-15
+      Account User/Interceptor            :done, users, 2025-01-19, 2025-01-23
+      File Management                     :active, files, 2025-01-24, 5d
+      More Sections                       :after files
+    section Frontend Development
+        
+    section AI Model Development
+
+    section Deployment & Optimization
+```
+
 ---
 
 ## 🔧 Core Technology Stack
-| Technology                       | Stack Used                                                                                                                   |
-|----------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                        |
-| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                       |
-| **Cloud Storage**                | MinIO, AWS S3, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer, Resumable Upload) |
-| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                    |
-| **LLM Models**                   | GPT-4, ChatGLM, LLaMA                                                                                                        |
-| **Security**                     | JWT, OAuth2, Spring Security                                                                                                 |
-| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                   |
+| Technology                       | Stack Used                                                                                                                                |
+|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                     |
+| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                    |
+| **Cloud Storage**                | MinIO, AWS S3, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer/Upload, Resumable Upload, etc.) |
+| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                 |
+| **LLM Models**                   | GPT-4, ChatGLM, LLaMA                                                                                                                     |
+| **Security**                     | JWT, OAuth2, Spring Security                                                                                                              |
+| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                |
 
 ---
 

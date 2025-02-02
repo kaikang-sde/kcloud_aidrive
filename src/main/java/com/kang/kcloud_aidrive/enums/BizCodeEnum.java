@@ -19,6 +19,7 @@ public enum BizCodeEnum {
     /**
      * files related
      */
+    PARENT_DIR_NOT_EXISTS(220401, "The parent directory does not exist."),
     FILE_NOT_EXISTS(220404, "The file does not exist."),
     FILE_RENAME_REPEAT(220405, "Duplicate file name."),
     FILE_DEL_BATCH_ILLEGAL(220406, "File deletion parameter error."),

@@ -26,10 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -289,6 +286,35 @@ public class AccountFileServiceImpl implements AccountFileService {
         accountFileDAOWithoutAutoGenIdRepository.saveAll(copiedAccountFileDAOList);
     }
 
+    /**
+     * Rapid upload
+     * 1. File existing check
+     * 2. Storage capacity check
+     * 3. build the relationship between the file and account file
+     *
+     * @param req
+     * @return
+     */
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public boolean instantUpload(FileInstantUploadReq req) {
+        FileDAO fileDAO = fileRepository.findByIdentifier(req.getIdentifier());
+        if (fileDAO != null && checkAndUpdateStorageCapacity(req.getAccountId(), fileDAO.getFileSize())) {
+            AccountFileDTO accountFileDTO = new AccountFileDTO();
+            accountFileDTO.setAccountId(req.getAccountId());
+            accountFileDTO.setFileId(fileDAO.getId());
+            accountFileDTO.setParentId(req.getParentId());
+            accountFileDTO.setFileName(req.getFileName());
+            accountFileDTO.setFileSize(fileDAO.getFileSize());
+            accountFileDTO.setDel(false);
+            accountFileDTO.setIsDir(FolderFlagEnum.NO.getCode());
+
+            saveAccountFile(accountFileDTO);
+            return true;
+        }
+        return false;
+    }
+
     private List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId) {
         List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList = new ArrayList<>();
 
@@ -455,7 +481,6 @@ public class AccountFileServiceImpl implements AccountFileService {
 
         accountFileRepository.save(accountFileDAO);
         return accountFileDAO.getId();
-
     }
 
     private void processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId) {
@@ -507,7 +532,7 @@ public class AccountFileServiceImpl implements AccountFileService {
         if (accountFileDTO.getParentId() != 0) {
             AccountFileDAO accountFileDAO = accountFileRepository.findByIdAndAccountId(accountFileDTO.getParentId(), accountFileDTO.getAccountId());
             if (accountFileDAO == null) {
-                throw new BizException(BizCodeEnum.FILE_NOT_EXISTS);
+                throw new BizException(BizCodeEnum.PARENT_DIR_NOT_EXISTS);
             }
         }
     }

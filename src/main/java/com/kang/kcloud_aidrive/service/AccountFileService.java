@@ -27,4 +27,6 @@ public interface AccountFileService {
     void batchDeleteFiles(FileDeletionReq req);
 
     void batchCopyFiles(FileBatchReq req);
+
+    boolean instantUpload(FileInstantUploadReq req);
 }
