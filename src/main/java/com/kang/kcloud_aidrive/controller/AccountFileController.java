@@ -93,8 +93,13 @@ public class AccountFileController {
 
     /**
      * small file upload
+     * SpringBoot Data Binding default behavior - No annotation is needed if parameters are part of form-data
+     * FileUploadReq is passed as a method parameter without @RequestBody,
+     * Spring treats it as a form data object rather than a JSON request body.
+     * If the request is a multipart/form-data or application/x-www-form-urlencoded,
+     * Spring will map the request parameters to the fields of FileUploadReq automatically.
      */
-    @PostMapping("small-file")
+    @PostMapping("uploads/small-file")
     @Operation(summary = "small file upload")
     public ResponseEntity<JsonData> upload(FileUploadReq req) {
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
@@ -102,7 +107,7 @@ public class AccountFileController {
         return ResponseEntity.ok(JsonData.buildSuccess("File uploaded successfully"));
     }
 
-    @PostMapping("batch-move")
+    @PostMapping("batch/move")
     @Operation(summary = "file batch move operations")
     public ResponseEntity<JsonData> batchMove(@RequestBody FileBatchReq req) {
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
@@ -118,12 +123,25 @@ public class AccountFileController {
         return ResponseEntity.ok(JsonData.buildSuccess());
     }
 
-    @PostMapping("batch-copy")
+    @PostMapping("batch/copy")
     @Operation(summary = "file batch copy operations")
     public ResponseEntity<JsonData> batchCopy(@RequestBody FileBatchReq req) {
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
         accountFileService.batchCopyFiles(req);
         return ResponseEntity.ok(JsonData.buildSuccess());
+    }
+
+    /**
+     * Rapid upload
+     * true: rapid upload success
+     * false: rapid upload failed, need to invoke normal upload interface
+     */
+    @PostMapping("uploads/rapid")
+    @Operation(summary = "Rapid upload")
+    public ResponseEntity<JsonData> rapidUpload(@RequestBody FileInstantUploadReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        boolean canRapidUpload = accountFileService.instantUpload(req);
+        return ResponseEntity.ok(JsonData.buildSuccess(canRapidUpload));
     }
 
 }
