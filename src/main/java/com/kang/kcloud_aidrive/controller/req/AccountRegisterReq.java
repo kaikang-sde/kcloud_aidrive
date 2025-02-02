@@ -4,6 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * @author Kai Kang,
+ * @since 2025-01-19
+ */
 @Data
 @Builder
 public class AccountRegisterReq {

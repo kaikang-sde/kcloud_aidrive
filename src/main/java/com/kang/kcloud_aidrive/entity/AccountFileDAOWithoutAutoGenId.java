@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,6 +12,12 @@ import java.util.Date;
 /**
  * <p>
  * Account File Table
+ * batch copy operation
+ * copy means create new files and its relationship, and save to DB target folder
+ * Need manually set id before save to DB and also persist this manually generated id to DB.
+ * If ID with GeneratedValue is used, the DB will overwrite the id which will break the relationship since the parent id is changed.
+ * <p>
+ * Solution: create a separate entity class and repository to avoid auto generated id
  * </p>
  *
  * @author Kai Kang,
@@ -22,16 +27,14 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "account_file")
-@Filter(name = "deletedFilter", condition = "del = :isDeleted")
 @Schema(name = "AccountFileDAO", description = "user file table")
-public class AccountFileDAO implements Serializable {
+@Filter(name = "deletedFilter", condition = "del = :isDeleted")
+public class AccountFileDAOWithoutAutoGenId implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "ID")
     @Id
-    @GeneratedValue(generator = "snowflake")
-    @GenericGenerator(name = "snowflake", strategy = "com.kang.kcloud_aidrive.config.SnowflakeConfig")
     private Long id;
 
     @Schema(description = "account ID")

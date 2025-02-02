@@ -4,6 +4,10 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * @author Kai Kang,
+ * @since 2025-01-19
+ */
 @Data
 @Accessors(chain = true)
 public class FileUploadReq {

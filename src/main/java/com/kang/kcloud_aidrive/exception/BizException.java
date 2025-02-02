@@ -4,7 +4,7 @@ import com.kang.kcloud_aidrive.enums.BizCodeEnum;
 import lombok.Data;
 
 /**
- * Custom exception class - 自定义异常类
+ * Custom exception class
  * used to represent business logic-related exceptions in a more structured way
  *
  * @author Kai Kang

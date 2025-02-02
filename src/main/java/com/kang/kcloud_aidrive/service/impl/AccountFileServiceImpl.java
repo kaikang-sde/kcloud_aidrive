@@ -1,29 +1,28 @@
 package com.kang.kcloud_aidrive.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.kang.kcloud_aidrive.component.StorageEngine;
 import com.kang.kcloud_aidrive.config.MinioConfig;
-import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
-import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
-import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
-import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
+import com.kang.kcloud_aidrive.config.SnowflakeConfig;
+import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAO;
+import com.kang.kcloud_aidrive.entity.AccountFileDAOWithoutAutoGenId;
 import com.kang.kcloud_aidrive.entity.FileDAO;
+import com.kang.kcloud_aidrive.entity.StorageDAO;
 import com.kang.kcloud_aidrive.enums.BizCodeEnum;
 import com.kang.kcloud_aidrive.enums.FileTypeEnum;
 import com.kang.kcloud_aidrive.enums.FolderFlagEnum;
 import com.kang.kcloud_aidrive.exception.BizException;
-import com.kang.kcloud_aidrive.mapper.AccountFileMapper;
+import com.kang.kcloud_aidrive.repository.AccountFileDAOWithoutAutoGenIdRepository;
 import com.kang.kcloud_aidrive.repository.AccountFileRepository;
 import com.kang.kcloud_aidrive.repository.FileRepository;
+import com.kang.kcloud_aidrive.repository.StorageRepository;
 import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.util.CommonUtil;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -33,6 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Author: Kai Kang
+ */
 @Service
 @Slf4j
 public class AccountFileServiceImpl implements AccountFileService {
@@ -41,12 +43,18 @@ public class AccountFileServiceImpl implements AccountFileService {
     private final StorageEngine fileStorageEngine;
     private final MinioConfig minioConfig;
     private final FileRepository fileRepository;
+    private final StorageRepository storageRepository;
+    private final SnowflakeConfig snowflakeConfig;
+    private final AccountFileDAOWithoutAutoGenIdRepository accountFileDAOWithoutAutoGenIdRepository;
 
-    public AccountFileServiceImpl(AccountFileRepository accountFileRepository, StorageEngine fileStorageEngine, MinioConfig minioConfig, FileRepository fileRepository) {
+    public AccountFileServiceImpl(AccountFileRepository accountFileRepository, StorageEngine fileStorageEngine, MinioConfig minioConfig, FileRepository fileRepository, StorageRepository storageRepository, SnowflakeConfig snowflakeConfig, AccountFileDAOWithoutAutoGenIdRepository accountFileDAOWithoutAutoGenIdRepository) {
         this.accountFileRepository = accountFileRepository;
         this.fileStorageEngine = fileStorageEngine;
         this.minioConfig = minioConfig;
         this.fileRepository = fileRepository;
+        this.storageRepository = storageRepository;
+        this.snowflakeConfig = snowflakeConfig;
+        this.accountFileDAOWithoutAutoGenIdRepository = accountFileDAOWithoutAutoGenIdRepository;
     }
 
     @Override
@@ -56,7 +64,7 @@ public class AccountFileServiceImpl implements AccountFileService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void renameFile(FileUpdateReq req) {
         AccountFileDAO accountFileDAO = accountFileRepository.findByIdAndAccountId(req.getFileId(), req.getAccountId());
 
@@ -166,15 +174,36 @@ public class AccountFileServiceImpl implements AccountFileService {
 
     }
 
-    // small file upload
+    /**
+     * small, normal file upload
+     *
+     * @param req
+     */
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void uploadFile(FileUploadReq req) {
-        // 1. upload to MinIO via S3Client
+        // 1. check storage capacity
+        boolean isEnough = checkAndUpdateStorageCapacity(req.getAccountId(), req.getFileSize());
+        if (!isEnough) {
+            throw new BizException(BizCodeEnum.FILE_STORAGE_NOT_ENOUGH);
+        }
+        // 2. upload to MinIO via S3Client
         String storeFileObjectKey = storeFile(req);
 
-        // 2. save file relationship + save relationship between user and file
+        // 3. save file relationship + save relationship between user and file
         saveFileAndAccountFile(req, storeFileObjectKey);
+    }
+
+    private boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize) {
+        StorageDAO storageDAO = storageRepository.findByAccountId(accountId);
+
+        Long newSize = storageDAO.getUsedSize() + fileSize;
+        if (newSize > storageDAO.getTotalSize()) {
+            return false;
+        }
+
+        storageRepository.updateUsedSizeByAccountId(accountId, fileSize);
+        return true;
     }
 
     /**
@@ -186,15 +215,16 @@ public class AccountFileServiceImpl implements AccountFileService {
      * @param req
      */
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public void batchMove(FileBatchReq req) {
         // Check whether the file IDs to be transferred are valid.
-        List<AccountFileDAO> accountFileDAOList = validateFileId(req.getFileIds(), req.getAccountId());
+        List<AccountFileDAO> toBeTransferredAccountFileDAOList = validateFileId(req.getFileIds(), req.getAccountId());
 
         // Validate the target folder ID, ensuring it includes subfolders.
         validateTargetParentId(req);
 
         // Batch move files to the target folder (handle duplicate file names).
-        accountFileDAOList.forEach(file -> processDuplicatedFileName(file, req.getTargetParentId()));
+        toBeTransferredAccountFileDAOList.forEach(file -> processDuplicatedFileName(file, req.getTargetParentId()));
 
         // Update the parentId of files or folders to the target folder ID.
         int updatedRows = accountFileRepository.updateParentIdForFileIds(req.getFileIds(), req.getTargetParentId());
@@ -202,6 +232,113 @@ public class AccountFileServiceImpl implements AccountFileService {
         if (updatedRows != req.getFileIds().size()) {
             throw new BizException(BizCodeEnum.FILE_BATCH_UPDATE_ERROR);
         }
+    }
+
+    /**
+     * 步骤一：检查是否满足：1、文件ID数量是否合法，2、文件是否属于当前用户
+     * 步骤二：判断文件是否是文件夹，文件夹的话需要递归获取里面子文件ID，然后进行批量删除
+     * 步骤三：需要更新账号存储空间使用情况
+     * 步骤四：批量删除账号映射文件，考虑回收站如何设计
+     *
+     * @param req
+     */
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void batchDeleteFiles(FileDeletionReq req) {
+        List<AccountFileDAO> toBeDeletedAccountFileDAOList = validateFileId(req.getFileIds(), req.getAccountId());
+
+        List<AccountFileDAO> storedAccountFileDAOList = new ArrayList<>();
+        // false - files and folders
+        findAllAccountFileDAOByRecursion(storedAccountFileDAOList, toBeDeletedAccountFileDAOList, false);
+
+        List<Long> allFileOrFolderIdList = storedAccountFileDAOList.stream().map(AccountFileDAO::getId).collect(Collectors.toList());
+
+        // update storage usage
+        // TODO: improvement, distributed lock - redission(key: accountId)
+        Long usedStorageSize = storedAccountFileDAOList.stream()
+                .filter(file -> file.getIsDir().equals(FolderFlagEnum.NO.getCode()))
+                .mapToLong(AccountFileDAO::getFileSize).sum();
+
+        storageRepository.updateUsedSizeByAccountId(req.getAccountId(), -usedStorageSize);
+
+        accountFileRepository.deleteAllByIdInBatch(allFileOrFolderIdList);
+
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void batchCopyFiles(FileBatchReq req) {
+        // check if the file ids are valid
+        List<AccountFileDAO> toBeCopiedAccountFileDAOList = validateFileId(req.getFileIds(), req.getAccountId());
+
+        // check if the target parent id is valid
+        validateTargetParentId(req);
+
+        // copy files, recursion, generate new file ids
+        List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList = findBatchCopyFilesRecursion(toBeCopiedAccountFileDAOList, req.getTargetParentId());
+
+        // calculate storage capacity
+        Long totalFileSize = copiedAccountFileDAOList.stream()
+                .filter(file -> file.getIsDir().equals(FolderFlagEnum.NO.getCode()))
+                .mapToLong(AccountFileDAOWithoutAutoGenId::getFileSize).sum();
+
+        if (!checkAndUpdateStorageCapacity(req.getAccountId(), totalFileSize)) {
+            throw new BizException(BizCodeEnum.FILE_STORAGE_NOT_ENOUGH);
+        }
+
+        accountFileDAOWithoutAutoGenIdRepository.saveAll(copiedAccountFileDAOList);
+    }
+
+    private List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId) {
+        List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList = new ArrayList<>();
+
+        // check if the file or folder, from the first level
+        toBeCopiedAccountFileDAOList.forEach(accountFileDAO -> doCopyChildRecord(copiedAccountFileDAOList, accountFileDAO, targetParentId));
+        return copiedAccountFileDAOList;
+    }
+
+    private void doCopyChildRecord(List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList, AccountFileDAO accountFileDAO, Long targetParentId) {
+        //Hibernate expects the ID to never change once set, create a new accountFileDAO
+        AccountFileDAOWithoutAutoGenId newAccountFileDAO = deepCopyAccountFileDAO(accountFileDAO, targetParentId);
+
+        processDuplicatedFileName(newAccountFileDAO, targetParentId);
+
+        copiedAccountFileDAOList.add(newAccountFileDAO);
+
+        // if still a folder, recursion to get next level file / folder based original file Id
+        if (accountFileDAO.getIsDir().equals(FolderFlagEnum.YES.getCode())) {
+            List<AccountFileDAO> childAccountFileDAOList = findChildAccountFile(accountFileDAO.getAccountId(), accountFileDAO.getId());
+            if (CollectionUtils.isEmpty(childAccountFileDAOList)) {
+                return;
+            }
+            childAccountFileDAOList
+                    .forEach(childAccountFileDAO -> doCopyChildRecord(copiedAccountFileDAOList, childAccountFileDAO, newAccountFileDAO.getId()));
+        }
+    }
+
+    private AccountFileDAOWithoutAutoGenId deepCopyAccountFileDAO(AccountFileDAO accountFileDAO, Long targetParentId) {
+        AccountFileDAOWithoutAutoGenId newAccountFileDAO = new AccountFileDAOWithoutAutoGenId();
+        newAccountFileDAO.setId(snowflakeConfig.generateId());
+        newAccountFileDAO.setAccountId(accountFileDAO.getAccountId());
+        newAccountFileDAO.setIsDir(accountFileDAO.getIsDir());
+        newAccountFileDAO.setParentId(targetParentId);
+        newAccountFileDAO.setFileId(accountFileDAO.getFileId());
+        newAccountFileDAO.setFileName(accountFileDAO.getFileName());
+        newAccountFileDAO.setFileType(accountFileDAO.getFileType());
+        newAccountFileDAO.setFileSuffix(accountFileDAO.getFileSuffix());
+        newAccountFileDAO.setFileSize(accountFileDAO.getFileSize());
+        return newAccountFileDAO;
+    }
+
+    /**
+     * find child account file
+     *
+     * @param accountId
+     * @param parentId
+     * @return
+     */
+    private List<AccountFileDAO> findChildAccountFile(Long accountId, Long parentId) {
+        return accountFileRepository.findAllByAccountIdAndParentId(accountId, parentId);
     }
 
 
@@ -302,7 +439,6 @@ public class AccountFileServiceImpl implements AccountFileService {
                 .build();
 
         return saveAccountFile(accountFileDTO);
-
     }
 
     /**
@@ -323,6 +459,28 @@ public class AccountFileServiceImpl implements AccountFileService {
     }
 
     private void processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId) {
+        if (parentId == null) {
+            parentId = accountFileDAO.getParentId();
+        }
+        Long selectCount = accountFileRepository.countByAccountIdAndParentIdAndIsDirAndFileName(
+                accountFileDAO.getAccountId(),
+                parentId,
+                accountFileDAO.getIsDir(),
+                accountFileDAO.getFileName()
+        );
+
+        if (selectCount > 0) {
+            // duplicated folder
+            if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
+                accountFileDAO.setFileName(accountFileDAO.getFileName() + "_" + System.currentTimeMillis());
+            } else { // duplicated filename,
+                String[] split = accountFileDAO.getFileName().split("\\.");
+                accountFileDAO.setFileName(split[0] + "_" + System.currentTimeMillis() + "." + split[1]);
+            }
+        }
+    }
+
+    private void processDuplicatedFileName(AccountFileDAOWithoutAutoGenId accountFileDAO, Long parentId) {
         if (parentId == null) {
             parentId = accountFileDAO.getParentId();
         }

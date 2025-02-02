@@ -6,6 +6,10 @@ import lombok.*;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * Author: Kai Kang
+ * Since: 2025-01-19
+ */
 @Getter
 @Setter
 @Builder

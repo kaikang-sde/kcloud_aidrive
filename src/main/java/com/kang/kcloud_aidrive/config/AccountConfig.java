@@ -1,6 +1,9 @@
 package com.kang.kcloud_aidrive.config;
 
 
+/**
+ * Author: Kai Kang
+ */
 public class AccountConfig {
     public static final String ACCOUNT_SALT = "com.kang.kcloud_aidrive";
 

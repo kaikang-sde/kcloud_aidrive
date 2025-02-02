@@ -12,7 +12,7 @@ import java.util.Date;
 
 /**
  * <p>
- * 用户文件表
+ * File Table
  * </p>
  *
  * @author Kai Kang,

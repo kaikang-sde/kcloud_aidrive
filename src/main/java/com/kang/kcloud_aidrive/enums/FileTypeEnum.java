@@ -6,6 +6,9 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Author: Kai Kang
+ */
 @Getter
 public enum FileTypeEnum {
     COMMON("common"),

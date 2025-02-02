@@ -77,18 +77,13 @@ public class AccountController {
                                                      required = true,
                                                      content = @Content(schema = @Schema(implementation = AccountRegisterReq.class))
                                              ) AccountRegisterReq req) {
-        try {
-            accountService.register(req);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(JsonData.buildError(e.getMessage()));
-        }
+        accountService.register(req);
         return ResponseEntity.ok(JsonData.buildSuccess("Account registered successfully"));
     }
 
     /**
      * Account Avatar Upload Interface
      */
-
     @PostMapping("avatar")
     @Operation(summary = "Upload an avatar",
             responses = {
@@ -122,12 +117,8 @@ public class AccountController {
                                                          required = true,
                                                          content = @Content(mediaType = "multipart/form-data")
                                                  ) MultipartFile file) {
-        try {
-            String url = accountService.uploadAvatar(file);
-            return ResponseEntity.ok(JsonData.buildSuccess("Avatar uploaded successfully - " + url));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(JsonData.buildError(e.getMessage()));
-        }
+        String url = accountService.uploadAvatar(file);
+        return ResponseEntity.ok(JsonData.buildSuccess("Avatar uploaded successfully - " + url));
     }
 
     @PostMapping("login")
@@ -165,10 +156,8 @@ public class AccountController {
                                           )
                                           AccountLoginReq req) {
         AccountDTO accountDTO = accountService.login(req);
-
         // jwt token - front end (localStorage or sessionStorage)
         String token = JwtUtil.geneLoginJWT(accountDTO);
-
         return ResponseEntity.ok(JsonData.buildSuccess(token));
     }
 

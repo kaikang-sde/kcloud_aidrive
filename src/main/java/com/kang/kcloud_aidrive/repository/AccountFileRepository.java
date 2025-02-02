@@ -10,12 +10,17 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Author: Kai Kang
+ */
 @Repository
 public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Long> {
 
     List<AccountFileDAO> findByParentId(Long parentId);
 
     AccountFileDAO findByAccountIdAndParentId(Long accountId, Long parentId);
+
+    List<AccountFileDAO> findAllByAccountIdAndParentId(Long accountId, Long parentId);
 
     AccountFileDAO findByIdAndAccountId(Long id, Long accountId);
 

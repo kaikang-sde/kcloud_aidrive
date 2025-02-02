@@ -1,9 +1,6 @@
 package com.kang.kcloud_aidrive.controller;
 
-import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
-import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
-import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
-import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
+import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.interceptor.LoginInterceptor;
@@ -11,9 +8,6 @@ import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.util.JsonData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * File Controller
+ * Account File Controller
  * Author: Kai Kang
  */
 @RestController
@@ -42,18 +36,7 @@ public class AccountFileController {
      * @return
      */
     @GetMapping
-    @Operation(
-            summary = "List files based on current directory(parent ID)",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successful response",
-                            content = @Content(
-                                    schema = @Schema(implementation = JsonData.class)
-                            )
-                    )
-            }
-    )
+    @Operation(summary = "List files based on current directory(parent ID)")
     public ResponseEntity<JsonData> list(
             @Parameter(
                     description = "Parent ID of the files to list",
@@ -74,18 +57,7 @@ public class AccountFileController {
      * @return
      */
     @PostMapping("folder")
-    @Operation(
-            summary = "Create a folder for the current directory(parent ID) and Account ID",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successful response",
-                            content = @Content(
-                                    schema = @Schema(implementation = JsonData.class)
-                            )
-                    )
-            }
-    )
+    @Operation(summary = "Create a folder for the current directory(parent ID) and Account ID")
     public ResponseEntity<JsonData> createFolder(@RequestBody FolderCreateReq req) {
         Long accountId = LoginInterceptor.threadLocal.get().getId();
         req.setAccountId(accountId);
@@ -137,4 +109,21 @@ public class AccountFileController {
         accountFileService.batchMove(req);
         return ResponseEntity.ok(JsonData.buildSuccess());
     }
+
+    @DeleteMapping("batch")
+    @Operation(summary = "Deletes multiple files based on their IDs.")
+    public ResponseEntity<JsonData> delete(@RequestBody FileDeletionReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        accountFileService.batchDeleteFiles(req);
+        return ResponseEntity.ok(JsonData.buildSuccess());
+    }
+
+    @PostMapping("batch-copy")
+    @Operation(summary = "file batch copy operations")
+    public ResponseEntity<JsonData> batchCopy(@RequestBody FileBatchReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        accountFileService.batchCopyFiles(req);
+        return ResponseEntity.ok(JsonData.buildSuccess());
+    }
+
 }

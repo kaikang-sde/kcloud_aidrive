@@ -16,7 +16,6 @@ import org.hibernate.annotations.GenericGenerator;
  * </p>
  *
  * @author Kai Kang,
- * @since 2025-01-19
  */
 @Getter
 @Setter

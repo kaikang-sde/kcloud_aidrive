@@ -6,8 +6,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Author: Kai Kang
+ */
 @Repository
 public interface AccountRepository extends JpaRepository<AccountDAO, Long> {
     List<AccountDAO> findByPhone(String phone);
+
     AccountDAO findByPhoneAndPassword(String phone, String password);
 }

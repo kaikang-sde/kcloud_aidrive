@@ -11,7 +11,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 /**
  * <p>
- * 存储信息表
+ * storage table
  * </p>
  *
  * @author Kai Kang,

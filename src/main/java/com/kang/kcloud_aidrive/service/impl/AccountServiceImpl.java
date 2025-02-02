@@ -29,8 +29,10 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Author: Kai Kang
+ */
 @Service
 @Slf4j
 public class AccountServiceImpl implements AccountService {

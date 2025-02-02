@@ -1,14 +1,14 @@
 package com.kang.kcloud_aidrive.service;
 
-import com.kang.kcloud_aidrive.controller.req.FileBatchReq;
-import com.kang.kcloud_aidrive.controller.req.FileUpdateReq;
-import com.kang.kcloud_aidrive.controller.req.FileUploadReq;
-import com.kang.kcloud_aidrive.controller.req.FolderCreateReq;
+import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 
 import java.util.List;
 
+/**
+ * Author: Kai Kang
+ */
 public interface AccountFileService {
     // create folder
     Long createFolder(FolderCreateReq folderCreateReq);
@@ -24,4 +24,7 @@ public interface AccountFileService {
 
     void batchMove(FileBatchReq req);
 
+    void batchDeleteFiles(FileDeletionReq req);
+
+    void batchCopyFiles(FileBatchReq req);
 }
