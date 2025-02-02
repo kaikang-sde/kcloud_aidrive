@@ -96,7 +96,7 @@ graph TD;
         Move
         Deletion
         Sharing
-        Batch Operations
+        Batch 
     end
     
     Backend -->|Processes AI Tasks| AI_Model;
