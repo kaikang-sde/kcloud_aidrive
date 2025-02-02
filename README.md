@@ -3,6 +3,7 @@
 ## 📌 Table of Contents
 - [Introduction](#introduction)
 - [Project Status](#-project-status)
+- [Project Progress Tracking](#-project-progress-tracking)
 - [Core Technology Stack](#core-technology-stack)
 - [Key Features](#key-features)
 - [Feature Comparison](#feature-comparison)
