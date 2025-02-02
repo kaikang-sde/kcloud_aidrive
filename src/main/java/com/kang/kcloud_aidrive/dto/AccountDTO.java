@@ -7,10 +7,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * <p>
- * Account DAO - JPA Entity
- * </p>
- *
  * @author Kai Kang,
  * @since 2025-01-19
  */

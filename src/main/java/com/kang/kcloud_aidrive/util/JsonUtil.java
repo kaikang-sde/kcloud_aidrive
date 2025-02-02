@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JSON tool - Json工具
+ * JSON tool
  *
  * @author Kai Kang
  */

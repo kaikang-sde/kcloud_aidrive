@@ -12,7 +12,7 @@ import java.util.Date;
 
 /**
  * <p>
- * 用户文件表
+ * File Table
  * </p>
  *
  * @author Kai Kang,
@@ -59,14 +59,21 @@ public class FileDAO implements Serializable {
     private String identifier;
 
     @Schema(description = "Logical Deletion - 1 deleted, 0 not deleted")
-    @Column(name = "del", nullable = false)
-    private Boolean del;
+    @Column(name = "del", nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean del = false;
 
     @Schema(description = "更新时间")
-    @Column(name = "est_modified")
+    @Column(name = "est_create", insertable = false, updatable = false)
     private Date estModified;
 
     @Schema(description = "创建时间")
-    @Column(name = "est_create")
+    @Column(name = "est_modified", insertable = false)
     private Date estCreate;
+
+    @PrePersist
+    public void prePersist() {
+        if (del == null) {
+            del = false;
+        }
+    }
 }

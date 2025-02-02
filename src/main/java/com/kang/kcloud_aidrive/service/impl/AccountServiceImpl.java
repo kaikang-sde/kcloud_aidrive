@@ -21,6 +21,7 @@ import com.kang.kcloud_aidrive.service.AccountFileService;
 import com.kang.kcloud_aidrive.service.AccountService;
 import com.kang.kcloud_aidrive.util.CommonUtil;
 import com.kang.kcloud_aidrive.util.SpringBeanUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,10 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * Author: Kai Kang
+ */
 @Service
 @Slf4j
 public class AccountServiceImpl implements AccountService {
@@ -108,7 +111,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountDTO queryDetail(Long id) {
         // account detail
-        Optional<AccountDAO> accountDAO = accountRepository.findById(id);
+        AccountDAO accountDAO = accountRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Account not found with id: " + id));
         AccountDTO accountDTO = SpringBeanUtil.copyProperties(accountDAO, AccountDTO.class);
 
         // storage detail

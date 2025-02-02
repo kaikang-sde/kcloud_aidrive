@@ -2,6 +2,7 @@ package com.kang.kcloud_aidrive.config;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
+import org.springframework.context.annotation.Configuration;
 
 import java.io.Serializable;
 
@@ -9,12 +10,17 @@ import java.io.Serializable;
  * Snowflake ID Generator
  * Author: Kai Kang
  */
-
+@Configuration
 public class SnowflakeConfig implements IdentifierGenerator {
     private final Snowflake snowflake = new Snowflake();
 
     @Override
     public Serializable generate(SharedSessionContractImplementor session, Object object) {
+        return snowflake.nextId();
+    }
+
+    // Expose ID generation method for service layer
+    public Long generateId() {
         return snowflake.nextId();
     }
 

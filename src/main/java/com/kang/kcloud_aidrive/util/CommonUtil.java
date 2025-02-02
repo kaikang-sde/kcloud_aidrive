@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Common tool - 通用工具
+ * Common tool
  *
  * @author Kai Kang
  */
@@ -22,7 +22,6 @@ public class CommonUtil {
 
     /**
      * Respond with JSON data to the frontend
-     *
      */
     public static void sendJsonMessage(HttpServletResponse response, Object obj) {
 

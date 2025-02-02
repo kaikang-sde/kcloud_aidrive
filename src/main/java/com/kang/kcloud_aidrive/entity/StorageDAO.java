@@ -11,7 +11,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 /**
  * <p>
- * 存储信息表
+ * storage table
  * </p>
  *
  * @author Kai Kang,
@@ -45,10 +45,10 @@ public class StorageDAO implements Serializable {
     private Long totalSize;
 
     @Schema(description = "Created Time - EST")
-    @Column(name = "est_create")
+    @Column(name = "est_create", insertable = false, updatable = false)
     private Date estCreate;
 
     @Schema(description = "Modified Time - EST")
-    @Column(name = "est_modified")
+    @Column(name = "est_modified", insertable = false)
     private Date estModified;
 }

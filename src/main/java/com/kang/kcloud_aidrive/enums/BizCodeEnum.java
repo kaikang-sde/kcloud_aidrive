@@ -3,7 +3,7 @@ package com.kang.kcloud_aidrive.enums;
 import lombok.Getter;
 
 /**
- * Enumerated status codes - 枚举状态码
+ * Enumerated status codes
  *
  * @author Kai Kang
  */
@@ -32,7 +32,10 @@ public enum BizCodeEnum {
     SHARE_NOT_EXIST(260405, "The share does not exist."),
     SHARE_CANCEL(260406, "The share has been canceled."),
     SHARE_EXPIRED(260407, "The share has expired."),
-    SHARE_FILE_ILLEGAL(260408, "The shared file is non-compliant.");
+    SHARE_FILE_ILLEGAL(260408, "The shared file is non-compliant."),
+    FILE_BATCH_UPDATE_ERROR(270101, "File batch update failed."),
+    ;
+
 
     @Getter
     private String message;
