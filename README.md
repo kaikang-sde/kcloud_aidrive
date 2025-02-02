@@ -87,7 +87,18 @@ This project is currently in active development. New features, optimizations, an
 ```mermaid
 graph TD;
     User -->|Uploads Files| Backend;
-    Backend -->|Stores Files (file operations, such as upload, download, copy, move, deletion, sharing, batch operations,etc.)| MinIO via S3 compatible APIs
+    Backend -->|File Storage Operations| MinIO;
+
+    subgraph File Operations
+        Upload
+        Download
+        Copy
+        Move
+        Deletion
+        Sharing
+        Batch Operations
+    end
+    
     Backend -->|Processes AI Tasks| AI_Model;
     AI_Model -->|Uses Vector Search| Milvus;
     User -->|Queries AI Assistant| Backend;
