@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
 
@@ -23,6 +24,7 @@ public class AWSS3Config {
     private final MinioConfig minioConfig;
 
     private S3Client s3Client;
+    private S3Presigner s3Presigner;
 
     public AWSS3Config(MinioConfig minioConfig) {
         this.minioConfig = minioConfig;
@@ -44,12 +46,33 @@ public class AWSS3Config {
         return s3Client;
     }
 
+    @Bean(name = "S3Presigner")
+    public S3Presigner getS3Presigner() {
+        AwsBasicCredentials minioCredentials = AwsBasicCredentials.create(
+                minioConfig.getAccessKey(),
+                minioConfig.getAccessSecret()
+        );
+
+        s3Presigner = S3Presigner.builder()
+                .endpointOverride(URI.create(minioConfig.getEndpoint()))
+                .credentialsProvider(StaticCredentialsProvider.create(minioCredentials))
+                .region(Region.US_EAST_1) // Region is required
+                .build();
+
+        return s3Presigner;
+    }
+
+
     // Ensure the S3Client is properly closed when the application shuts down
     @PreDestroy
     public void closeS3Client() {
         if (s3Client != null) {
             s3Client.close();
             log.info("MinIO S3 Client closed successfully.");
+        }
+        if (s3Presigner != null) {
+            s3Presigner.close();
+            log.info("MinIO S3 Presigner closed successfully.");
         }
     }
 

@@ -4,6 +4,7 @@ package com.kang.kcloud_aidrive.component;
 import com.kang.kcloud_aidrive.config.MinioConfig;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.internal.http.HttpMethod;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,14 +19,18 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,11 +45,13 @@ import java.util.concurrent.TimeUnit;
 public class MinioFileStorageEngine implements StorageEngine {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final MinioConfig minioConfig;
 
     @Autowired
-    public MinioFileStorageEngine(S3Client s3Client, MinioConfig minioConfig) {
+    public MinioFileStorageEngine(S3Client s3Client, S3Presigner s3Presigner, MinioConfig minioConfig) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.minioConfig = minioConfig;
     }
 
@@ -324,4 +331,122 @@ public class MinioFileStorageEngine implements StorageEngine {
             throw new RuntimeException("Error downloading file: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public ListPartsResponse listMultipart(String bucketName, String objectKey, String uploadId) {
+        try {
+            // Construct request to list parts
+            ListPartsRequest request = ListPartsRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .uploadId(uploadId)
+                    .build();
+
+            // Call AWS S3 to list uploaded parts
+            return s3Client.listParts(request);
+        } catch (Exception e) {
+            log.error("Error listing multipart upload parts: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, Map<String, String> metadata) {
+        try {
+            // Build the CreateMultipartUploadRequest
+            CreateMultipartUploadRequest request = CreateMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .metadata(metadata)  // Setting metadata
+                    .acl(ObjectCannedACL.PUBLIC_READ) // Optional: Set object ACL
+                    .build();
+
+            // Execute the multipart upload initiation request
+            return s3Client.createMultipartUpload(request);
+        } catch (Exception e) {
+            log.error("Error initiating multipart upload: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public URL genePreSignedUrl(String bucketName, String objectKey, HttpMethod httpMethod, Date expiration, Map<String, Object> params) {
+        try {
+            // Calculate duration from current time
+            long expirationSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;
+
+            // Create pre-signed request
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
+                    PutObjectPresignRequest.builder()
+                            .signatureDuration(Duration.ofSeconds(expirationSeconds))
+                            .putObjectRequest(PutObjectRequest.builder()
+                                    .bucket(bucketName)
+                                    .key(objectKey)
+                                    .build())
+                            .build()
+            );
+
+            // Append query parameters manually
+            URL signedUrl = presignedRequest.url();
+            String finalUrl = appendQueryParameters(signedUrl, params);
+            log.info("Generated Pre-Signed URL: {}", finalUrl);
+
+            return URI.create(finalUrl).toURL();
+        } catch (Exception e) {
+            log.error("Error generating pre-signed URL", e);
+            return null;
+        }
+
+    }
+
+    @Override
+    public CompleteMultipartUploadResponse mergeChunks(String bucketName, String objectKey, String uploadId, List<CompletedPart> partETags) {
+        try {
+            // Convert List<PartETag> to List<CompletedPart>
+            List<CompletedPart> completedParts = partETags.stream()
+                    .map(partETag -> CompletedPart.builder()
+                            .partNumber(partETag.partNumber())
+                            .eTag(partETag.eTag())
+                            .build())
+                    .collect(Collectors.toList());
+
+            // Create CompletedMultipartUpload
+            CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
+                    .parts(completedParts)
+                    .build();
+
+            // Create CompleteMultipartUploadRequest
+            CompleteMultipartUploadRequest request = CompleteMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .uploadId(uploadId)
+                    .multipartUpload(completedMultipartUpload)
+                    .build();
+
+            // Complete the multipart upload
+            CompleteMultipartUploadResponse response = s3Client.completeMultipartUpload(request);
+            log.info("Multipart upload completed: {}", response.location());
+            return response;
+        } catch (S3Exception e) {
+            log.error("Error completing multipart upload: {}", e.awsErrorDetails().errorMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Manually appends query parameters to the pre-signed URL.
+     *
+     * @param url    The original URL
+     * @param params Query parameters to append
+     * @return Updated URL with parameters
+     */
+    private String appendQueryParameters(URL url, Map<String, Object> params) {
+        String queryParams = params.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining("&"));
+
+        return url.toString() + (queryParams.isEmpty() ? "" : "?" + queryParams);
+    }
+
+
 }

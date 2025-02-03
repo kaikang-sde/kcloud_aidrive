@@ -45,15 +45,15 @@ gantt
 ---
 
 ## 🔧 Core Technology Stack
-| Technology                       | Stack Used                                                                                                                                |
-|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                     |
-| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                    |
-| **Cloud Storage**                | MinIO, AWS S3, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer/Upload, Resumable Upload, etc.) |
-| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                 |
-| **LLM Models**                   | GPT-4, ChatGLM, LLaMA                                                                                                                     |
-| **Security**                     | JWT, OAuth2, Spring Security                                                                                                              |
-| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                |
+| Technology                       | Stack Used                                                                                                                                             |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                                  |
+| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                                 |
+| **Cloud Storage**                | MinIO, AWS S3 SDK Java 2.X, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer/Upload, Resumable Upload, etc.) |
+| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                              |
+| **LLM Models**                   | GPT-4, ChatGLM, LLaMA                                                                                                                                  |
+| **Security**                     | JWT, OAuth2, Spring Security                                                                                                                           |
+| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                             |
 
 ---
 
