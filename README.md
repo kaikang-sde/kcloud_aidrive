@@ -115,7 +115,9 @@ graph TD;
         Move
         Deletion
         Sharing
-        Batch 
+        Batch
+        Chunked
+        Resumable
     end
     
     Backend -->|Processes AI Tasks| AI_Model;
