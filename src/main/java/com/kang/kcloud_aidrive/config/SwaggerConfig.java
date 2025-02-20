@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Swagger3.0：http://localhost:8080/swagger-ui/index.html
  * Doc: https://springdoc.org/
- * Author: Kai Kang
+ * @author Kai Kang
  */
 
 @Configuration

@@ -7,7 +7,7 @@ import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import java.util.List;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 public interface AccountFileService {
     // create folder
@@ -29,4 +29,7 @@ public interface AccountFileService {
     void batchCopyFiles(FileBatchReq req);
 
     boolean instantUpload(FileInstantUploadReq req);
+
+    void saveFileAndAccountFile(FileUploadReq req, String storeFileObjectKey);
+
 }

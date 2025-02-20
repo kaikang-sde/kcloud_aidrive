@@ -5,8 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Data
 public class FileBatchReq {

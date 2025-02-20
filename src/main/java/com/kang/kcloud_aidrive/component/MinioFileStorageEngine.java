@@ -16,16 +16,20 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.*;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,11 +44,13 @@ import java.util.concurrent.TimeUnit;
 public class MinioFileStorageEngine implements StorageEngine {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final MinioConfig minioConfig;
 
     @Autowired
-    public MinioFileStorageEngine(S3Client s3Client, MinioConfig minioConfig) {
+    public MinioFileStorageEngine(S3Client s3Client, S3Presigner s3Presigner, MinioConfig minioConfig) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.minioConfig = minioConfig;
     }
 
@@ -323,5 +329,150 @@ public class MinioFileStorageEngine implements StorageEngine {
         } catch (Exception e) {
             throw new RuntimeException("Error downloading file: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public ListPartsResponse listMultipart(String bucketName, String objectKey, String uploadId) {
+        try {
+            // Construct request to list parts
+            ListPartsRequest request = ListPartsRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .uploadId(uploadId)
+                    .build();
+
+            // Call AWS S3 to list uploaded parts
+            return s3Client.listParts(request);
+        } catch (Exception e) {
+            log.error("Error listing multipart upload parts: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, String contentType) {
+        try {
+            // Build the CreateMultipartUploadRequest
+            CreateMultipartUploadRequest request = CreateMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(contentType)
+                    .acl(ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL)
+                    .build();
+
+            // Execute the multipart upload initiation request
+            return s3Client.createMultipartUpload(request);
+        } catch (Exception e) {
+            log.error("Error initiating multipart upload: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType) {
+        try {
+            // Calculate duration from current time
+            long expirationSeconds = Math.max(1, (expiration.getTime() - System.currentTimeMillis()) / 1000);
+
+            UploadPartPresignRequest uploadPartPresignRequest = UploadPartPresignRequest.builder()
+                    .signatureDuration(Duration.ofSeconds(expirationSeconds)) // Expiration time
+                    .uploadPartRequest(UploadPartRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .uploadId(uploadId)  // Ensure uploadId is included
+                            .partNumber(partNumber)  // Ensure partNumber is included
+                            .build())
+                    .build();
+
+            PresignedUploadPartRequest presignedRequest = s3Presigner.presignUploadPart(uploadPartPresignRequest);
+
+
+            // Append required query parameters manually
+            URL signedUrl = presignedRequest.url();
+
+            // Create pre-signed request
+//            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
+//                    PutObjectPresignRequest.builder()
+//                            .signatureDuration(Duration.ofSeconds(expirationSeconds))
+//                            .putObjectRequest(PutObjectRequest.builder()
+//                                    .bucket(bucketName)
+//                                    .key(objectKey)
+//                                    .contentType("application/octet-stream")
+//                                    .build())
+//                            .build()
+//            );
+
+//            // Append query parameters manually
+//            URL signedUrl = presignedRequest.url();
+//            String finalUrl = appendQueryParameters(signedUrl, stringParams);
+            log.info("Generated Pre-Signed URL: {}", signedUrl.toString());
+
+            return signedUrl;
+        } catch (Exception e) {
+            log.error("Error generating pre-signed URL", e);
+            return null;
+        }
+    }
+
+    @Override
+    public CompleteMultipartUploadResponse mergeChunks(String bucketName, String objectKey, String uploadId, List<CompletedPart> partETags) {
+        try {
+            // Convert List<PartETag> to List<CompletedPart>
+            List<CompletedPart> completedParts = partETags.stream()
+                    .map(partETag -> CompletedPart.builder()
+                            .partNumber(partETag.partNumber())
+                            .eTag(partETag.eTag())
+                            .build())
+                    .collect(Collectors.toList());
+
+            // Create CompletedMultipartUpload
+            CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
+                    .parts(completedParts)
+                    .build();
+
+            // Create CompleteMultipartUploadRequest
+            CompleteMultipartUploadRequest request = CompleteMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .uploadId(uploadId)
+                    .multipartUpload(completedMultipartUpload)
+                    .build();
+
+            // Complete the multipart upload
+            CompleteMultipartUploadResponse response = s3Client.completeMultipartUpload(request);
+            log.info("Multipart upload completed: {}", response.location());
+            return response;
+        } catch (S3Exception e) {
+            log.error("Error completing multipart upload: {}", e.awsErrorDetails().errorMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Manually appends query parameters to the pre-signed URL.
+     *
+     * @param url    The original URL
+     * @param params Query parameters to append
+     * @return Updated URL with parameters
+     */
+    private String appendQueryParameters(URL url, Map<String, Object> params) {
+        if (params.isEmpty()) {
+            return url.toString();
+        }
+
+        String queryParams = params.entrySet().stream()
+                .map(entry -> {
+                    try {
+                        String key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+                        String value = URLEncoder.encode(String.valueOf(entry.getValue()), StandardCharsets.UTF_8);
+                        return key + "=" + value;
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error encoding query parameters", e);
+                    }
+                })
+                .collect(Collectors.joining("&"));
+
+        String urlStr = url.toString();
+        return urlStr + (urlStr.contains("?") ? "&" : "?") + queryParams;
     }
 }

@@ -6,7 +6,7 @@ import com.kang.kcloud_aidrive.dto.AccountDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 public interface AccountService {
     void register(AccountRegisterReq req);

@@ -1,7 +1,7 @@
 package com.kang.kcloud_aidrive.enums;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 public enum AccountRoleEnum {
     COMMON,

@@ -5,8 +5,7 @@ import lombok.experimental.Accessors;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Data
 @Accessors(chain = true)

@@ -16,8 +16,7 @@ import lombok.Setter;
  * 文件类型表
  * </p>
  *
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Getter
 @Setter

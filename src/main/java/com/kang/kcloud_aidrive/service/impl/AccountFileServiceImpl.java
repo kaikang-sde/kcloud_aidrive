@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Service
 @Slf4j
@@ -315,6 +315,7 @@ public class AccountFileServiceImpl implements AccountFileService {
         return false;
     }
 
+
     private List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId) {
         List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList = new ArrayList<>();
 
@@ -419,6 +420,7 @@ public class AccountFileServiceImpl implements AccountFileService {
     }
 
     // save the relationship between file and account file to DB
+    @Override
     public void saveFileAndAccountFile(FileUploadReq req, String storeFileObjectKey) {
         FileDAO fileDAO = saveFile(req, storeFileObjectKey);
 

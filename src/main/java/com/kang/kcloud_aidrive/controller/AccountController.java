@@ -23,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
  * This API provides endpoints for managing accounts.
  *
  * @author Kai Kang
- * @since 2025-01-19
  */
 
 @RestController

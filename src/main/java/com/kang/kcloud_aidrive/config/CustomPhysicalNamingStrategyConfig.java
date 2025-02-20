@@ -4,7 +4,7 @@ import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 public class CustomPhysicalNamingStrategyConfig extends PhysicalNamingStrategyStandardImpl {
     public String toPhysicalColumnName(String name, JdbcEnvironment context) {

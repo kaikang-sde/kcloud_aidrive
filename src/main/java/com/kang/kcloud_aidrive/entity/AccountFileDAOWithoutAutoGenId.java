@@ -20,8 +20,7 @@ import java.util.Date;
  * Solution: create a separate entity class and repository to avoid auto generated id
  * </p>
  *
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Getter
 @Setter

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @AllArgsConstructor
 @Getter

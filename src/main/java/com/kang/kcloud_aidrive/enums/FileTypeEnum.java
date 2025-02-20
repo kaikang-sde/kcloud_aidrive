@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Getter
 public enum FileTypeEnum {

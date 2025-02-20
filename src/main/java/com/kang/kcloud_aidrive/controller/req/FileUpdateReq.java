@@ -3,8 +3,7 @@ package com.kang.kcloud_aidrive.controller.req;
 import lombok.Data;
 
 /**
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Data
 public class FileUpdateReq {

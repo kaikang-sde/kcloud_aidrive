@@ -7,8 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Getter
 @Setter
