@@ -19,7 +19,7 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * The LoginInterceptor is a ThreadLocal-based interceptor
  * used to validate user login status and store the logged-in user’s information within the current thread.
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Slf4j
 @Component

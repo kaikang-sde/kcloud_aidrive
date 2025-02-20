@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import java.net.InetAddress;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @SpringBootApplication
 @Slf4j

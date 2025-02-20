@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Repository
 public interface AccountRepository extends JpaRepository<AccountDAO, Long> {

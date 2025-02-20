@@ -1,21 +1,19 @@
 package com.kang.kcloud_aidrive.component;
 
 import jakarta.servlet.http.HttpServletResponse;
-import okhttp3.internal.http.HttpMethod;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * strategy pattern
  * buckets operations
  * files operations
- * Author: Kai Kang
+ * @author Kai Kang
  */
 public interface StorageEngine {
 
@@ -72,16 +70,17 @@ public interface StorageEngine {
     /**
      * Initializes a multipart upload task to get an upload ID.
      * If an upload ID already exists, it means resuming an upload, so a new ID should not be created.
+     * https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html
+     * https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#createMultipartUpload(software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest)
      *
-     * @param bucketName The name of the S3 bucket.
-     * @param objectKey  The key of the object to upload.
-     * @param metadata   Metadata for the object (e.g., Content-Type).
+     * @param bucketName  The name of the S3 bucket.
+     * @param objectKey   The key of the object to upload.
+     * @param contentType Metadata for the object (e.g., Content-Type).
      * @return Upload ID for multipart upload.
      */
-    CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, Map<String, String> metadata);
+    CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, String contentType);
 
-    URL genePreSignedUrl(String bucketName, String objectKey, HttpMethod httpMethod, Date expiration, Map<String, Object> params);
-
+    URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType);
 
     /**
      * Completes a multipart upload by merging uploaded chunks.

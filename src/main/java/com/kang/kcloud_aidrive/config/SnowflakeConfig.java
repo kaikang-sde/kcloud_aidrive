@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 /**
  * Snowflake ID Generator
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Configuration
 public class SnowflakeConfig implements IdentifierGenerator {

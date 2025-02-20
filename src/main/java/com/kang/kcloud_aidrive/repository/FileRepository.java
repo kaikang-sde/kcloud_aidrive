@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Repository
 public interface FileRepository extends JpaRepository<FileDAO, Long> {

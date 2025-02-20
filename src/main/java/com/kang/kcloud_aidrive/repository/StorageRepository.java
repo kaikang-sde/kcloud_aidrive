@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Repository
 public interface StorageRepository extends JpaRepository<StorageDAO, Long> {
@@ -18,5 +18,9 @@ public interface StorageRepository extends JpaRepository<StorageDAO, Long> {
     @Modifying
     @Query("UPDATE StorageDAO s SET s.usedSize = s.usedSize + :fileSize WHERE s.accountId = :accountId")
     void updateUsedSizeByAccountId(@Param("accountId") Long accountId, @Param("fileSize") Long fileSize);
+
+    @Modifying
+    @Query("UPDATE StorageDAO s SET s.usedSize = s.usedSize + :fileSize WHERE s.id = :id")
+    void updateUsedSizeById(@Param("id") Long id, @Param("fileSize") Long fileSize);
 
 }

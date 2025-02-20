@@ -1,6 +1,5 @@
 package com.kang.kcloud_aidrive.component;
 
-import okhttp3.internal.http.HttpMethod;
 import software.amazon.awssdk.services.s3.model.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,11 +8,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Not implemented - No local file needed
+ *
+ * @author Kai Kang
  */
 public class LocalFileStorageEngine implements StorageEngine {
     @Override
@@ -77,12 +77,12 @@ public class LocalFileStorageEngine implements StorageEngine {
     }
 
     @Override
-    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, Map<String, String> metadata) {
+    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, String contentType) {
         return null;
     }
 
     @Override
-    public URL genePreSignedUrl(String bucketName, String objectKey, HttpMethod httpMethod, Date expiration, Map<String, Object> params) {
+    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType) {
         return null;
     }
 

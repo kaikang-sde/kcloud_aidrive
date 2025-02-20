@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Service
 @Slf4j

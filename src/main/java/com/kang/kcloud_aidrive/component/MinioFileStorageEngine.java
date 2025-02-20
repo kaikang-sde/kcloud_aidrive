@@ -4,7 +4,6 @@ package com.kang.kcloud_aidrive.component;
 import com.kang.kcloud_aidrive.config.MinioConfig;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.internal.http.HttpMethod;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,14 +16,14 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.*;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
 import java.io.File;
-import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -351,14 +350,14 @@ public class MinioFileStorageEngine implements StorageEngine {
     }
 
     @Override
-    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, Map<String, String> metadata) {
+    public CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, String contentType) {
         try {
             // Build the CreateMultipartUploadRequest
             CreateMultipartUploadRequest request = CreateMultipartUploadRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
-                    .metadata(metadata)  // Setting metadata
-                    .acl(ObjectCannedACL.PUBLIC_READ) // Optional: Set object ACL
+                    .contentType(contentType)
+                    .acl(ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL)
                     .build();
 
             // Execute the multipart upload initiation request
@@ -370,33 +369,49 @@ public class MinioFileStorageEngine implements StorageEngine {
     }
 
     @Override
-    public URL genePreSignedUrl(String bucketName, String objectKey, HttpMethod httpMethod, Date expiration, Map<String, Object> params) {
+    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType) {
         try {
             // Calculate duration from current time
-            long expirationSeconds = (expiration.getTime() - System.currentTimeMillis()) / 1000;
+            long expirationSeconds = Math.max(1, (expiration.getTime() - System.currentTimeMillis()) / 1000);
+
+            UploadPartPresignRequest uploadPartPresignRequest = UploadPartPresignRequest.builder()
+                    .signatureDuration(Duration.ofSeconds(expirationSeconds)) // Expiration time
+                    .uploadPartRequest(UploadPartRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .uploadId(uploadId)  // Ensure uploadId is included
+                            .partNumber(partNumber)  // Ensure partNumber is included
+                            .build())
+                    .build();
+
+            PresignedUploadPartRequest presignedRequest = s3Presigner.presignUploadPart(uploadPartPresignRequest);
+
+
+            // Append required query parameters manually
+            URL signedUrl = presignedRequest.url();
 
             // Create pre-signed request
-            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
-                    PutObjectPresignRequest.builder()
-                            .signatureDuration(Duration.ofSeconds(expirationSeconds))
-                            .putObjectRequest(PutObjectRequest.builder()
-                                    .bucket(bucketName)
-                                    .key(objectKey)
-                                    .build())
-                            .build()
-            );
+//            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
+//                    PutObjectPresignRequest.builder()
+//                            .signatureDuration(Duration.ofSeconds(expirationSeconds))
+//                            .putObjectRequest(PutObjectRequest.builder()
+//                                    .bucket(bucketName)
+//                                    .key(objectKey)
+//                                    .contentType("application/octet-stream")
+//                                    .build())
+//                            .build()
+//            );
 
-            // Append query parameters manually
-            URL signedUrl = presignedRequest.url();
-            String finalUrl = appendQueryParameters(signedUrl, params);
-            log.info("Generated Pre-Signed URL: {}", finalUrl);
+//            // Append query parameters manually
+//            URL signedUrl = presignedRequest.url();
+//            String finalUrl = appendQueryParameters(signedUrl, stringParams);
+            log.info("Generated Pre-Signed URL: {}", signedUrl.toString());
 
-            return URI.create(finalUrl).toURL();
+            return signedUrl;
         } catch (Exception e) {
             log.error("Error generating pre-signed URL", e);
             return null;
         }
-
     }
 
     @Override
@@ -441,12 +456,23 @@ public class MinioFileStorageEngine implements StorageEngine {
      * @return Updated URL with parameters
      */
     private String appendQueryParameters(URL url, Map<String, Object> params) {
+        if (params.isEmpty()) {
+            return url.toString();
+        }
+
         String queryParams = params.entrySet().stream()
-                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .map(entry -> {
+                    try {
+                        String key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
+                        String value = URLEncoder.encode(String.valueOf(entry.getValue()), StandardCharsets.UTF_8);
+                        return key + "=" + value;
+                    } catch (Exception e) {
+                        throw new RuntimeException("Error encoding query parameters", e);
+                    }
+                })
                 .collect(Collectors.joining("&"));
 
-        return url.toString() + (queryParams.isEmpty() ? "" : "?" + queryParams);
+        String urlStr = url.toString();
+        return urlStr + (urlStr.contains("?") ? "&" : "?") + queryParams;
     }
-
-
 }

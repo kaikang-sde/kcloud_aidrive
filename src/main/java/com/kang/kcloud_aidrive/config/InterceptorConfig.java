@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Configure interceptor whitelist path development settings
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @Slf4j
 @Component

@@ -18,8 +18,7 @@ import lombok.Setter;
  * 用户文件表
  * </p>
  *
- * @author Kai Kang,
- * @since 2025-01-19
+ * @author Kai Kang
  */
 @Getter
 @Setter

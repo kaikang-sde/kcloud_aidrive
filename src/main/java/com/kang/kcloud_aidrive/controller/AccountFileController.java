@@ -2,9 +2,11 @@ package com.kang.kcloud_aidrive.controller;
 
 import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
+import com.kang.kcloud_aidrive.dto.FileChunkDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.interceptor.LoginInterceptor;
 import com.kang.kcloud_aidrive.service.AccountFileService;
+import com.kang.kcloud_aidrive.service.FileChunkService;
 import com.kang.kcloud_aidrive.util.JsonData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,7 +18,7 @@ import java.util.List;
 
 /**
  * Account File Controller
- * Author: Kai Kang
+ * @author Kai Kang
  */
 @RestController
 @RequestMapping("/api/files/v1")
@@ -24,9 +26,11 @@ import java.util.List;
 public class AccountFileController {
 
     private final AccountFileService accountFileService;
+    private final FileChunkService fileChunkService;
 
-    public AccountFileController(AccountFileService accountFileService) {
+    public AccountFileController(AccountFileService accountFileService, FileChunkService fileChunkService) {
         this.accountFileService = accountFileService;
+        this.fileChunkService = fileChunkService;
     }
 
     /**
@@ -144,4 +148,48 @@ public class AccountFileController {
         return ResponseEntity.ok(JsonData.buildSuccess(canRapidUpload));
     }
 
+
+    /**
+     * 1. 创建分片上传任务
+     */
+    @PostMapping("uploads/chunks/initiate")
+    @Operation(summary = "initiate file chunks for uploading big file")
+    public ResponseEntity<JsonData> initiateChunkUpload(@RequestBody FileChunkInitTaskReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        FileChunkDTO fileChunkDTO = fileChunkService.initiateChunkUpload(req);
+        return ResponseEntity.ok(JsonData.buildSuccess(fileChunkDTO));
+    }
+
+    /**
+     * 2. 获取分片上传地址，返回MinIO临时签名地址
+     */
+    @GetMapping("uploads/chunks/pre-signed-url/{identifier}/{partNumber}")
+    @Operation(summary = "generate pre signed url based on file identifier and chunked part number")
+    public ResponseEntity<JsonData> getChunkUploadUrl(@PathVariable("identifier") String identifier, @PathVariable("partNumber") int partNumber) {
+        Long accountId = LoginInterceptor.threadLocal.get().getId();
+        String presignedUrl = fileChunkService.getPresignedUploadUrl(accountId, identifier, partNumber);
+        return ResponseEntity.ok(JsonData.buildSuccess(presignedUrl));
+    }
+
+    /**
+     * 3. 合并分片
+     */
+    @PostMapping("uploads/chunks/merge")
+    @Operation(summary = "merge chunked files into the big file")
+    public ResponseEntity<JsonData> mergeChunks(@RequestBody FileChunkMergeReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        fileChunkService.mergeChunks(req);
+        return ResponseEntity.ok(JsonData.buildSuccess());
+    }
+
+    /**
+     * 4. 查询分片上传进度
+     */
+    @GetMapping("uploads/chunks/progress/{identifier}")
+    @Operation(summary = "query/ get chunk upload progress")
+    public ResponseEntity<JsonData> getChunkUploadProgress(@PathVariable("identifier") String identifier) {
+        Long accountId = LoginInterceptor.threadLocal.get().getId();
+        FileChunkDTO fileChunkDTO = fileChunkService.listFileChunk(accountId, identifier);
+        return ResponseEntity.ok(JsonData.buildSuccess(fileChunkDTO));
+    }
 }
