@@ -80,7 +80,7 @@ public interface StorageEngine {
      */
     CreateMultipartUploadResponse initMultipartUploadTask(String bucketName, String objectKey, String contentType);
 
-    URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType);
+    URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId);
 
     /**
      * Completes a multipart upload by merging uploaded chunks.

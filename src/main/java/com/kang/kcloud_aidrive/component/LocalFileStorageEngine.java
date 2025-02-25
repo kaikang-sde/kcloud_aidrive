@@ -82,7 +82,7 @@ public class LocalFileStorageEngine implements StorageEngine {
     }
 
     @Override
-    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType) {
+    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId) {
         return null;
     }
 

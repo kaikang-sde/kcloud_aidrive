@@ -15,6 +15,7 @@ public enum BizCodeEnum {
     ACCOUNT_UNREGISTER(250002, "The account does not exist."),
     ACCOUNT_PWD_ERROR(250003, "Incorrect account or password."),
     ACCOUNT_UNLOGIN(250004, "The account is not logged in."),
+    ACCOUNT_NOT_EXIST(250005, "The account does not exist."),
 
     /**
      * files related
@@ -31,7 +32,7 @@ public enum BizCodeEnum {
     SHARE_CANCEL_ILLEGAL(260403, "Failed to cancel sharing, invalid parameter."),
     SHARE_CODE_ILLEGAL(260404, "Invalid share code."),
     SHARE_NOT_EXIST(260405, "The share does not exist."),
-    SHARE_CANCEL(260406, "The share has been canceled."),
+    SHARE_CANCELLED(260406, "The share has been canceled."),
     SHARE_EXPIRED(260407, "The share has expired."),
     SHARE_FILE_ILLEGAL(260408, "The shared file is non-compliant."),
     FILE_BATCH_UPDATE_ERROR(270101, "File batch update failed."),

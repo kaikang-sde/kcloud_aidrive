@@ -14,14 +14,18 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final String LOGIN_SUBJECT = "KCLOUD-AIDRIVE";
+    private static final String SHARE_SUBJECT = "KCLOUD-AIDRIVE-SHARE";
 
     private final static String SECRET_KEY = "com.kang.kcloud_aidrive.this.is.a.secret.key";
+    public final static String CLAIM_SHARE_KEY = "SHARE_ID";
     // 签名算法
     private final static SecureDigestAlgorithm<SecretKey, SecretKey> ALGORITHM = Jwts.SIG.HS256;
     // 使用密钥
     private final static SecretKey KEY = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     // token过期时间，30 days
     private static final long EXPIRED = 1000 * 60 * 60 * 24 * 7;
+    private static final long SHARE_TOKEN_EXPIRE = 1000 * 60 * 60; // 1 hours
+
 
     /**
      * 生成JWT
@@ -84,6 +88,54 @@ public class JwtUtil {
             log.error("JWT expired: {}", e.getMessage(), e);
         } catch (Exception e) {
             log.error("JWT decryption failed: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * 创建分享的令牌
+     */
+    public static String geneShareJWT(Object claimValue) {
+
+        // 创建 JWT token
+        String compact = Jwts.builder()
+                .subject(SHARE_SUBJECT)
+                .claim(CLAIM_SHARE_KEY, claimValue)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + SHARE_TOKEN_EXPIRE))
+                .signWith(KEY, ALGORITHM)  // 直接使用KEY即可
+                .compact();
+        return compact;
+    }
+
+    /**
+     * 创建分享的令牌
+     */
+    public static Claims checkShareJWT(String token) {
+        try {
+            log.debug("Starting to check Share JWT: {}", token);
+            // 校验 Token 是否为空
+            if (token == null || token.trim().isEmpty()) {
+                log.error("Share Token cannot be null or empty.");
+                return null;
+            }
+            token = token.trim();
+            // 解析 JWT
+            Claims payload = Jwts.parser()
+                    .verifyWith(KEY)  //设置签名的密钥, 使用相同的 KEY
+                    .build()
+                    .parseSignedClaims(token).getPayload();
+
+            log.info("Share JWT decryption succeeded, Claims: {}", payload);
+            return payload;
+        } catch (IllegalArgumentException e) {
+            log.error("Share JWT verification failed: {}", e.getMessage(), e);
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            log.error("Share JWT signature verification failed: {}", e.getMessage(), e);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.error("Share JWT expired: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Share JWT decryption failed: {}", e.getMessage(), e);
         }
         return null;
     }

@@ -191,7 +191,8 @@ public class AccountFileServiceImpl implements AccountFileService {
         saveFileAndAccountFile(req, storeFileObjectKey);
     }
 
-    private boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize) {
+    @Override
+    public boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize) {
         StorageDAO storageDAO = storageRepository.findByAccountId(accountId);
 
         Long newSize = storageDAO.getUsedSize() + fileSize;
@@ -315,8 +316,8 @@ public class AccountFileServiceImpl implements AccountFileService {
         return false;
     }
 
-
-    private List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId) {
+    @Override
+    public List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId) {
         List<AccountFileDAOWithoutAutoGenId> copiedAccountFileDAOList = new ArrayList<>();
 
         // check if the file or folder, from the first level
@@ -391,7 +392,8 @@ public class AccountFileServiceImpl implements AccountFileService {
         }
     }
 
-    private void findAllAccountFileDAOByRecursion(List<AccountFileDAO> allAccountFileDAOList, List<AccountFileDAO> preparedAccountFileDAOList, boolean onlyFolder) {
+    @Override
+    public void findAllAccountFileDAOByRecursion(List<AccountFileDAO> allAccountFileDAOList, List<AccountFileDAO> preparedAccountFileDAOList, boolean onlyFolder) {
         for (AccountFileDAO accountFileDAO : preparedAccountFileDAOList) {
             if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
                 // 文件夹，递归获取子文件ID
@@ -407,8 +409,8 @@ public class AccountFileServiceImpl implements AccountFileService {
         }
     }
 
-
-    private List<AccountFileDAO> validateFileId(List<Long> fileIds, Long accountId) {
+    @Override
+    public List<AccountFileDAO> validateFileId(List<Long> fileIds, Long accountId) {
         List<AccountFileDAO> accountFileDAOList = accountFileRepository.findByIdInAndAccountId(fileIds, accountId);
         if (accountFileDAOList.size() != fileIds.size()) {
             log.error("The number of files to be moved does not match the number of valid File id - fildIds: {}, accountId: {}", fileIds, accountId);
