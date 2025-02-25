@@ -34,13 +34,13 @@ public class AccountFileController {
     }
 
     /**
-     * /api/files/v1/{parentId}
+     * /api/files/v1?parent_id={parentId}
      *
      * @param parentId
      * @return
      */
     @GetMapping
-    @Operation(summary = "List files based on current directory(parent ID)")
+    @Operation(summary = "List files based on current directory(parent ID) - /api/files/v1?parent_id=xxxx")
     public ResponseEntity<JsonData> list(
             @Parameter(
                     description = "Parent ID of the files to list",
@@ -96,7 +96,7 @@ public class AccountFileController {
     }
 
     /**
-     * small file upload
+     * small file upload - within 5MB
      * SpringBoot Data Binding default behavior - No annotation is needed if parameters are part of form-data
      * FileUploadReq is passed as a method parameter without @RequestBody,
      * Spring treats it as a form data object rather than a JSON request body.

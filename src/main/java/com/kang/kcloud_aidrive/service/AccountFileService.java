@@ -3,6 +3,8 @@ package com.kang.kcloud_aidrive.service;
 import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
+import com.kang.kcloud_aidrive.entity.AccountFileDAO;
+import com.kang.kcloud_aidrive.entity.AccountFileDAOWithoutAutoGenId;
 
 import java.util.List;
 
@@ -12,6 +14,7 @@ import java.util.List;
 public interface AccountFileService {
     // create folder
     Long createFolder(FolderCreateReq folderCreateReq);
+
     List<AccountFileDTO> listFile(Long accountId, Long parentId);
 
     void renameFile(FileUpdateReq req);
@@ -32,4 +35,11 @@ public interface AccountFileService {
 
     void saveFileAndAccountFile(FileUploadReq req, String storeFileObjectKey);
 
+    List<AccountFileDAO> validateFileId(List<Long> fileIds, Long accountId);
+
+    void findAllAccountFileDAOByRecursion(List<AccountFileDAO> allAccountFileDAOList, List<AccountFileDAO> preparedAccountFileDAOList, boolean onlyFolder);
+
+    List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId);
+
+    boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize);
 }

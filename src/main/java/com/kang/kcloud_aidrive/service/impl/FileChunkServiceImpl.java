@@ -99,13 +99,9 @@ public class FileChunkServiceImpl implements FileChunkService {
             throw new BizException(BizCodeEnum.FILE_CHUNK_TASK_NOT_EXISTS);
         }
 
-        String objectKey = CommonUtil.getFilePath(fileChunkDAO.getFileName());
-        String contentType = MediaTypeFactory.getMediaType(objectKey).orElse(MediaType.APPLICATION_OCTET_STREAM).toString();
-
-
         // 配置预签名， 过期时间
         Date expireTime = DateUtil.offsetMillisecond(DateTime.now(), minioConfig.getPreSignURLExpire().intValue());
-        URL presignedUrl = storageEngine.genePreSignedUrl(fileChunkDAO.getBucketName(), fileChunkDAO.getObjectKey(), expireTime, partNumber, fileChunkDAO.getUploadId(), contentType);
+        URL presignedUrl = storageEngine.genePreSignedUrl(fileChunkDAO.getBucketName(), fileChunkDAO.getObjectKey(), expireTime, partNumber, fileChunkDAO.getUploadId());
 
         log.info("Generated Pre-Signed URL: {}", presignedUrl);
         return presignedUrl.toString();

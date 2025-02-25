@@ -22,8 +22,6 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
 
 import java.io.File;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -369,7 +367,7 @@ public class MinioFileStorageEngine implements StorageEngine {
     }
 
     @Override
-    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId, String contentType) {
+    public URL genePreSignedUrl(String bucketName, String objectKey, Date expiration, int partNumber, String uploadId) {
         try {
             // Calculate duration from current time
             long expirationSeconds = Math.max(1, (expiration.getTime() - System.currentTimeMillis()) / 1000);
@@ -390,21 +388,6 @@ public class MinioFileStorageEngine implements StorageEngine {
             // Append required query parameters manually
             URL signedUrl = presignedRequest.url();
 
-            // Create pre-signed request
-//            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(
-//                    PutObjectPresignRequest.builder()
-//                            .signatureDuration(Duration.ofSeconds(expirationSeconds))
-//                            .putObjectRequest(PutObjectRequest.builder()
-//                                    .bucket(bucketName)
-//                                    .key(objectKey)
-//                                    .contentType("application/octet-stream")
-//                                    .build())
-//                            .build()
-//            );
-
-//            // Append query parameters manually
-//            URL signedUrl = presignedRequest.url();
-//            String finalUrl = appendQueryParameters(signedUrl, stringParams);
             log.info("Generated Pre-Signed URL: {}", signedUrl.toString());
 
             return signedUrl;
@@ -446,33 +429,5 @@ public class MinioFileStorageEngine implements StorageEngine {
             log.error("Error completing multipart upload: {}", e.awsErrorDetails().errorMessage());
             throw e;
         }
-    }
-
-    /**
-     * Manually appends query parameters to the pre-signed URL.
-     *
-     * @param url    The original URL
-     * @param params Query parameters to append
-     * @return Updated URL with parameters
-     */
-    private String appendQueryParameters(URL url, Map<String, Object> params) {
-        if (params.isEmpty()) {
-            return url.toString();
-        }
-
-        String queryParams = params.entrySet().stream()
-                .map(entry -> {
-                    try {
-                        String key = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
-                        String value = URLEncoder.encode(String.valueOf(entry.getValue()), StandardCharsets.UTF_8);
-                        return key + "=" + value;
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error encoding query parameters", e);
-                    }
-                })
-                .collect(Collectors.joining("&"));
-
-        String urlStr = url.toString();
-        return urlStr + (urlStr.contains("?") ? "&" : "?") + queryParams;
     }
 }

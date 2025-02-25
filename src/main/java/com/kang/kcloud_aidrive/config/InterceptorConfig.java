@@ -24,10 +24,10 @@ public class InterceptorConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 // Add intercepted paths
-                .addPathPatterns("/api/accounts/*/**", "/api/files/*/**", "/api/share/*/**")
+                .addPathPatterns("/api/accounts/*/**", "/api/files/*/**", "/api/shares/*/**")
 
                 //Exclude from interception
                 .excludePathPatterns("/api/accounts/*/registration", "/api/accounts/*/login", "/api/accounts/*/avatar",
-                        "/api/share/*/check_share_code", "/api/share/*/visit", "/api/share/*/detail_no_code", "/api/share/*/detail_with_code");
+                        "/api/shares/*/shared/code", "/api/shares/*/shared", "/api/shares/*/detail_no_code", "/api/shares/*/detail_with_code");
     }
 }
