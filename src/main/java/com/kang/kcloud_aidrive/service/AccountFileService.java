@@ -42,4 +42,6 @@ public interface AccountFileService {
     List<AccountFileDAOWithoutAutoGenId> findBatchCopyFilesRecursion(List<AccountFileDAO> toBeCopiedAccountFileDAOList, Long targetParentId);
 
     boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize);
+
+    Long processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId);
 }

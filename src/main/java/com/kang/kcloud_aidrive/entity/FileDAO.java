@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -21,7 +21,7 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "file")
-@Filter(name = "deletedFilter", condition = "del = :isDeleted")
+@SQLRestriction("del = 0")  // Automatically filter out deleted records
 @Schema(name = "FileDAO", description = "user file table")
 public class FileDAO implements Serializable {
 

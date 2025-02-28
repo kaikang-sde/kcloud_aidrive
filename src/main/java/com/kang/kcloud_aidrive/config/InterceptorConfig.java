@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Configure interceptor whitelist path development settings
+ *
  * @author Kai Kang
  */
 @Slf4j
@@ -24,7 +25,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 // Add intercepted paths
-                .addPathPatterns("/api/accounts/*/**", "/api/files/*/**", "/api/shares/*/**")
+                .addPathPatterns("/api/accounts/*/**", "/api/files/*/**", "/api/shares/*/**", "/api/recycle-bin/*/**")
 
                 //Exclude from interception
                 .excludePathPatterns("/api/accounts/*/registration", "/api/accounts/*/login", "/api/accounts/*/avatar",

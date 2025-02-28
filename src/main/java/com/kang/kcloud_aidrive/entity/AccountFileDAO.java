@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -21,7 +21,8 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "account_file")
-@Filter(name = "deletedFilter", condition = "del = :isDeleted")
+@SQLRestriction("del = 0")
+// Automatically filter out deleted records, this is the global setting, when want to show deleted files in Recycle Bin, need to use native query
 @Schema(name = "AccountFileDAO", description = "user file table")
 public class AccountFileDAO implements Serializable {
 
