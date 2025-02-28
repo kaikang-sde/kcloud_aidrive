@@ -32,7 +32,7 @@ gantt
       Research/Basic Design                 :done, design, 2024-10-01, 2024-12-20
       MySQL tables design                   :done, db, 2024-12-20, 2024-12-27
       AWS EC2/Docker/GitHub                 :done, setup, 2025-01-01, 2025-01-05
-      Common Utils/Swagger/MinIO/S3         :done, utils, 2025-01-12, 2024-01-20
+      Common Utils/Swagger/MinIO/S3         :done, utils, 2025-01-12, 2025-01-20
       Account/Interceptor                   :done, account, 2025-01-21, 2025-01-24
       File Management - CRUD/Batch/instant  :done, basic, 2025-01-01, 2025-02-02
       File Management - Chunked/Resumable   :done, chunked, 2025-02-04, 2025-02-20
