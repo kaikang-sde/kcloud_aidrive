@@ -34,7 +34,7 @@ gantt
       AWS EC2/Docker/GitHub                 :done, setup, 2025-01-01, 2025-01-05
       Common Utils/Swagger/MinIO/S3         :done, utils, 2025-01-12, 2025-01-20
       Account/Interceptor                   :done, account, 2025-01-21, 2025-01-24
-      File Management - CRUD/Batch/instant  :done, basic, 2025-01-01, 2025-02-02
+      File Management - CRUD/Batch/instant  :done, basic, 2025-01-25, 2025-02-02
       File Management - Chunked/Resumable   :done, chunked, 2025-02-04, 2025-02-20
       File Management - Sharing             :done, sharing, 2025-02-20, 2025-02-24
       File Management - Recycle Bin         :done, recycle, 2025-02-24, 2025-02-27
