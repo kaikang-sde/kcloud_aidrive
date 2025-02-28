@@ -179,8 +179,9 @@ public class AccountFileServiceImpl implements AccountFileService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void uploadFile(FileUploadReq req) {
+        long fileSize = req.getFile().getSize(); // Get file size in bytes
         // 1. check storage capacity
-        boolean isEnough = checkAndUpdateStorageCapacity(req.getAccountId(), req.getFileSize());
+        boolean isEnough = checkAndUpdateStorageCapacity(req.getAccountId(), fileSize);
         if (!isEnough) {
             throw new BizException(BizCodeEnum.FILE_STORAGE_NOT_ENOUGH);
         }
@@ -222,14 +223,22 @@ public class AccountFileServiceImpl implements AccountFileService {
         validateTargetParentId(req);
 
         // Batch move files to the target folder (handle duplicate file names).
-        toBeTransferredAccountFileDAOList.forEach(file -> processDuplicatedFileName(file, req.getTargetParentId()));
+//        toBeTransferredAccountFileDAOList.forEach(file -> processDuplicatedFileName(file, req.getTargetParentId()));
+//
+//        // Update the parentId of files or folders to the target folder ID.
+//        int updatedRows = accountFileRepository.updateParentIdForFileIds(req.getFileIds(), req.getTargetParentId());
+//
+//        if (updatedRows != req.getFileIds().size()) {
+//            throw new BizException(BizCodeEnum.FILE_BATCH_UPDATE_ERROR);
+//        }
 
-        // Update the parentId of files or folders to the target folder ID.
-        int updatedRows = accountFileRepository.updateParentIdForFileIds(req.getFileIds(), req.getTargetParentId());
-
-        if (updatedRows != req.getFileIds().size()) {
-            throw new BizException(BizCodeEnum.FILE_BATCH_UPDATE_ERROR);
-        }
+        // improvement: if duplicate, DB return > 0, then update
+        toBeTransferredAccountFileDAOList.forEach(accountFileDAO -> {
+            Long selectedCount = processDuplicatedFileName(accountFileDAO, accountFileDAO.getParentId());
+            if (selectedCount > 0) {
+                accountFileRepository.updateParentIdForFileIds(req.getFileIds(), req.getTargetParentId());
+            }
+        });
     }
 
     /**
@@ -259,7 +268,7 @@ public class AccountFileServiceImpl implements AccountFileService {
 
         storageRepository.updateUsedSizeByAccountId(req.getAccountId(), -usedStorageSize);
 
-        accountFileRepository.deleteAllByIdInBatch(allFileOrFolderIdList);
+        accountFileRepository.softDeleteAllByIdInBatch(allFileOrFolderIdList);
 
     }
 
@@ -487,7 +496,8 @@ public class AccountFileServiceImpl implements AccountFileService {
         return accountFileDAO.getId();
     }
 
-    private void processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId) {
+    @Override
+    public Long processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId) {
         if (parentId == null) {
             parentId = accountFileDAO.getParentId();
         }
@@ -507,6 +517,7 @@ public class AccountFileServiceImpl implements AccountFileService {
                 accountFileDAO.setFileName(split[0] + "_" + System.currentTimeMillis() + "." + split[1]);
             }
         }
+        return selectCount;
     }
 
     private void processDuplicatedFileName(AccountFileDAOWithoutAutoGenId accountFileDAO, Long parentId) {

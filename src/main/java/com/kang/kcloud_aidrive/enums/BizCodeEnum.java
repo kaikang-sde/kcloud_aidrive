@@ -24,6 +24,7 @@ public enum BizCodeEnum {
     FILE_NOT_EXISTS(220404, "The file does not exist."),
     FILE_RENAME_REPEAT(220405, "Duplicate file name."),
     FILE_DEL_BATCH_ILLEGAL(220406, "File deletion parameter error."),
+    File_RECYCLE_ILLEGAL(220406, "Recycle bin operation error."),
     FILE_TYPE_ERROR(220407, "Incorrect file type."),
     FILE_CHUNK_TASK_NOT_EXISTS(230408, "The shard task does not exist."),
     FILE_CHUNK_NOT_ENOUGH(230409, "The number of shards does not match; merge incomplete."),

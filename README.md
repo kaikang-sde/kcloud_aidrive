@@ -37,7 +37,7 @@ gantt
       File Management - CRUD/Batch/instant  :done, basic, 2025-01-01, 2025-02-02
       File Management - Chunked/Resumable   :done, chunked, 2025-02-04, 2025-02-20
       File Management - Sharing             :done, sharing, 2025-02-20, 2025-02-24
-      File Management - Trash Bin           :active, trash, 2025-02-24, 5d
+      File Management - Recycle Bin         :done, recycle, 2025-02-24, 2025-02-27
       More Sections                         :after trash
     section Frontend Development
         

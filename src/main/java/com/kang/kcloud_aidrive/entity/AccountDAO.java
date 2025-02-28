@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * <p>
@@ -21,7 +21,7 @@ import org.hibernate.annotations.GenericGenerator;
 @Setter
 @Table(name = "account")
 @Entity
-@Filter(name = "deletedFilter", condition = "del = :isDeleted")
+@SQLRestriction("del = 0")  // Automatically filter out deleted records
 @Schema(name = "AccountDAO", description = "User Account Table")
 public class AccountDAO implements Serializable {
 
