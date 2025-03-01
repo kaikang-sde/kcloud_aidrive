@@ -2,6 +2,7 @@ package com.kang.kcloud_aidrive.service;
 
 import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
+import com.kang.kcloud_aidrive.dto.FileDownloadUrlDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAOWithoutAutoGenId;
@@ -44,4 +45,8 @@ public interface AccountFileService {
     boolean checkAndUpdateStorageCapacity(Long accountId, Long fileSize);
 
     Long processDuplicatedFileName(AccountFileDAO accountFileDAO, Long parentId);
+
+    List<AccountFileDTO> search(Long accountId, String searchKey);
+
+    List<FileDownloadUrlDTO> getDownloadUrls(FileDownloadUrlReq req);
 }

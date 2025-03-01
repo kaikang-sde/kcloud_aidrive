@@ -3,6 +3,7 @@ package com.kang.kcloud_aidrive.controller;
 import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
 import com.kang.kcloud_aidrive.dto.FileChunkDTO;
+import com.kang.kcloud_aidrive.dto.FileDownloadUrlDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.interceptor.LoginInterceptor;
 import com.kang.kcloud_aidrive.service.AccountFileService;
@@ -18,6 +19,7 @@ import java.util.List;
 
 /**
  * Account File Controller
+ *
  * @author Kai Kang
  */
 @RestController
@@ -191,5 +193,28 @@ public class AccountFileController {
         Long accountId = LoginInterceptor.threadLocal.get().getId();
         FileChunkDTO fileChunkDTO = fileChunkService.listFileChunk(accountId, identifier);
         return ResponseEntity.ok(JsonData.buildSuccess(fileChunkDTO));
+    }
+
+
+    /**
+     * TODO: internal Elastic Search for complex search + canal
+     *
+     * @param searchKey
+     * @return
+     */
+    @GetMapping("search")
+    @Operation(summary = "simple file search based on search key")
+    public ResponseEntity<JsonData> search(@RequestParam("search") String searchKey) {
+        Long accountId = LoginInterceptor.threadLocal.get().getId();
+        List<AccountFileDTO> accountFileDTOList = accountFileService.search(accountId, searchKey);
+        return ResponseEntity.ok(JsonData.buildSuccess(accountFileDTOList));
+    }
+
+    @PostMapping("download-url")
+    @Operation(summary = "get download url")
+    public ResponseEntity<JsonData> getDownloadUrl(@RequestBody FileDownloadUrlReq req) {
+        req.setAccountId(LoginInterceptor.threadLocal.get().getId());
+        List<FileDownloadUrlDTO> fileDownloadUrlDTOList = accountFileService.getDownloadUrls(req);
+        return ResponseEntity.ok(JsonData.buildSuccess(fileDownloadUrlDTOList));
     }
 }
