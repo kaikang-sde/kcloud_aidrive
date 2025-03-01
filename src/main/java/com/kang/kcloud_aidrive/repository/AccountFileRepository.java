@@ -113,4 +113,18 @@ public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Lon
     List<AccountFileDAO> findRecycleFilesByAccountIdString(
             @Param("accountId") Long accountId,
             @Param("fileIdList") String fileIdList);
+
+    @Query(value = "SELECT * FROM account_file " +
+            "WHERE account_id = :accountId " +
+            "AND file_name LIKE %:search% " +
+            "ORDER BY is_dir DESC, est_create DESC " +
+            "LIMIT 30", nativeQuery = true)
+    List<AccountFileDAO> findFilesByAccountIdAndFileNameOrderByIsDirAndEstCreateNative(
+            @Param("accountId") Long accountId,
+            @Param("search") String search);
+
+    List<AccountFileDAO> findByAccountIdAndIsDirAndIdIn(Long accountId, Integer code, List<Long> fileIds);
+
+    @Query("SELECT f.objectKey FROM FileDAO f WHERE f.id = :fileId")
+    String findObjectKeyById(Long fileId);
 }

@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -275,6 +276,7 @@ public class MinioFileStorageEngine implements StorageEngine {
         try (S3Presigner presigner = S3Presigner.builder()
                 .region(Region.US_EAST_1) // Set your region
                 .credentialsProvider(StaticCredentialsProvider.create(minioCredentials)) // Update with your credential provider
+                .endpointOverride(URI.create(minioConfig.getEndpoint()))
                 .build()) {
 
             // Create the GetObjectRequest

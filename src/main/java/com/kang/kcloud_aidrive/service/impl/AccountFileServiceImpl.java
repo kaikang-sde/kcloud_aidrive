@@ -5,6 +5,7 @@ import com.kang.kcloud_aidrive.config.MinioConfig;
 import com.kang.kcloud_aidrive.config.SnowflakeConfig;
 import com.kang.kcloud_aidrive.controller.req.*;
 import com.kang.kcloud_aidrive.dto.AccountFileDTO;
+import com.kang.kcloud_aidrive.dto.FileDownloadUrlDTO;
 import com.kang.kcloud_aidrive.dto.FolderTreeNodeDTO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAO;
 import com.kang.kcloud_aidrive.entity.AccountFileDAOWithoutAutoGenId;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -518,6 +520,32 @@ public class AccountFileServiceImpl implements AccountFileService {
             }
         }
         return selectCount;
+    }
+
+    @Override
+    public List<AccountFileDTO> search(Long accountId, String searchKey) {
+        List<AccountFileDAO> accountFileDAOList = accountFileRepository.findFilesByAccountIdAndFileNameOrderByIsDirAndEstCreateNative(accountId, searchKey);
+        return SpringBeanUtil.copyProperties(accountFileDAOList, AccountFileDTO.class);
+    }
+
+    @Override
+    public List<FileDownloadUrlDTO> getDownloadUrls(FileDownloadUrlReq req) {
+        List<AccountFileDAO> accountFileDAOList = accountFileRepository.findByAccountIdAndIsDirAndIdIn(req.getAccountId(), FolderFlagEnum.NO.getCode(), req.getFileIds());
+
+        List<FileDownloadUrlDTO> fileDownloadUrlDTOList = new ArrayList<>();
+        for (AccountFileDAO accountFileDAO : accountFileDAOList) {
+            String objectKey = accountFileRepository.findObjectKeyById(accountFileDAO.getFileId());
+            String downloadUrl = fileStorageEngine.getDownloadUrl(
+                    minioConfig.getBucketName(),
+                    objectKey,
+                    minioConfig.getPreSignURLExpire(),
+                    TimeUnit.MILLISECONDS
+            );
+            FileDownloadUrlDTO fileDownloadUrlDTO = new FileDownloadUrlDTO(accountFileDAO.getFileName(), downloadUrl);
+            fileDownloadUrlDTOList.add(fileDownloadUrlDTO);
+        }
+
+        return fileDownloadUrlDTOList;
     }
 
     private void processDuplicatedFileName(AccountFileDAOWithoutAutoGenId accountFileDAO, Long parentId) {
