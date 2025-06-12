@@ -38,27 +38,27 @@ gantt
       File Management - Chunked/Resumable                   :done, chunked, 2025-02-04, 2025-02-20
       File Management - Sharing                             :done, sharing, 2025-02-20, 2025-02-24
       File Management - Recycle Bin/Search/download         :done, recycle, 2025-02-24, 2025-02-28
-      More Sections                         :after search                           
-    Driver Improvements - Elasticsearch     :after search
+      AI Integration - Streaming/WebClient                  :done, streaming, 2025-06-01, 2025-06-07
+    section AI Model Development                          
+      LLM Models Integration                                :done, llm, 2025-03-01, 2025-03-10
+      FastAPI/LangChain                                     :done, fastapi, 2025-03-12, 2025-06-01
     section Frontend Development
         
-    section AI Model Development
-
     section Deployment & Optimization
 ```
 
 ---
 
 ## 🔧 Core Technology Stack
-| Technology                       | Stack Used                                                                                                                                             |
-|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                                  |
-| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                                 |
+| Technology                       | Stack Used                                                                                                                                    |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                         |
+| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                        |
 | **Cloud Storage**                | MinIO, AWS S3 SDK Java 2.X, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer/Upload, Resumable Upload, etc.) |
-| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                              |
-| **LLM Models**                   | GPT-4, ChatGLM, LLaMA                                                                                                                                  |
-| **Security**                     | JWT, OAuth2, Spring Security                                                                                                                           |
-| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                             |
+| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                     |
+| **LLM Models**                   | GPT-4, LLaMA                                                                                                                                  |
+| **Security**                     | JWT, OAuth2, Spring Security                                                                                                                  |
+| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                    |
 
 ---
 

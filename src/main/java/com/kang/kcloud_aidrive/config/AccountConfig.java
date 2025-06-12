@@ -15,7 +15,8 @@ public class AccountConfig {
     public static final Long ROOT_PARENT_ID = 0L;
 
     // front end address
-    public static final String KCLOUD_AIDRIVE_FRONT_DOMAIN_SHARE_API = "127.0.0.1:9999/shares/";
+    public static final String KCLOUD_AIDRIVE_FRONT_DOMAIN_SHARE_API = "127.0.0.1:8081/shares/";
+    public static final String KCLOUD_AIDRIVE_FRONT_DOMAIN_SHARE_API_PROD = "kcloud-aidrive/files/";
 
 
 }

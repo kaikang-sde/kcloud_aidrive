@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -181,6 +182,18 @@ public class AccountFileServiceImpl implements AccountFileService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void uploadFile(FileUploadReq req) {
+        List<AccountFileDAO> softDeletedFiles = accountFileRepository
+                .findSoftDeletedFiles(
+                        req.getAccountId(),
+                        req.getParentId(),
+                        req.getFileName(),
+                        FolderFlagEnum.NO.getCode()
+                );
+
+        for (AccountFileDAO file : softDeletedFiles) {
+            file.setFileName(file.getFileName() + "_deleted_" + System.currentTimeMillis());
+            accountFileRepository.save(file);
+        }
         long fileSize = req.getFile().getSize(); // Get file size in bytes
         // 1. check storage capacity
         boolean isEnough = checkAndUpdateStorageCapacity(req.getAccountId(), fileSize);
@@ -298,6 +311,21 @@ public class AccountFileServiceImpl implements AccountFileService {
         accountFileDAOWithoutAutoGenIdRepository.saveAll(copiedAccountFileDAOList);
     }
 
+    private void renameSoftDeletedFileIfExists(Long accountId, Long parentId, String fileName) {
+        log.info("🔍 Checking for soft-deleted file to rename: accountId={}, parentId={}, fileName={}", accountId, parentId, fileName);
+        List<AccountFileDAO> softDeletedFiles = accountFileRepository
+                .findSoftDeletedFiles(accountId, parentId, fileName, FolderFlagEnum.NO.getCode());
+
+        log.info("🔎 Found {} soft-deleted files", softDeletedFiles.size());
+
+        for (AccountFileDAO file : softDeletedFiles) {
+            String newName = file.getFileName() + "_deleted_" + System.currentTimeMillis();
+            log.info("Renaming soft-deleted file id={} from '{}' to '{}'", file.getId(), file.getFileName(), newName);
+            file.setFileName(newName);
+            accountFileRepository.saveAndFlush(file);
+        }
+    }
+
     /**
      * Rapid upload
      * 1. File existing check
@@ -310,8 +338,29 @@ public class AccountFileServiceImpl implements AccountFileService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public boolean instantUpload(FileInstantUploadReq req) {
+        // 查找 file 表中是否已有该文件内容（通过秒传 identifier）
         FileDAO fileDAO = fileRepository.findByIdentifier(req.getIdentifier());
+
         if (fileDAO != null && checkAndUpdateStorageCapacity(req.getAccountId(), fileDAO.getFileSize())) {
+            // 秒传恢复逻辑：检查是否已有被软删除但重名的文件，需要重命名老文件
+            renameSoftDeletedFileIfExists(req.getAccountId(), req.getParentId(), req.getFileName());
+
+            // 安全检查：fileDAO 是否已经被 active 文件记录引用
+            boolean isFileIdInUse = accountFileRepository.existsByFileIdAndDelFalse(fileDAO.getId());
+            if (isFileIdInUse) {
+                // 如果已有文件使用该 fileDAO，创建新的物理文件记录，避免冲突
+                FileDAO newFileDAO = new FileDAO();
+                newFileDAO.setAccountId(req.getAccountId());
+                newFileDAO.setFileName(req.getFileName());
+                newFileDAO.setFileSize(fileDAO.getFileSize());
+                newFileDAO.setFileSuffix(fileDAO.getFileSuffix());
+                newFileDAO.setIdentifier(UUID.randomUUID().toString());
+                newFileDAO.setObjectKey(fileDAO.getObjectKey()); // 可复用 MinIO 路径
+                fileRepository.save(newFileDAO);
+                fileDAO = newFileDAO; // 替换成新记录
+            }
+
+            // 创建 account_file 逻辑记录
             AccountFileDTO accountFileDTO = new AccountFileDTO();
             accountFileDTO.setAccountId(req.getAccountId());
             accountFileDTO.setFileId(fileDAO.getId());
@@ -320,6 +369,8 @@ public class AccountFileServiceImpl implements AccountFileService {
             accountFileDTO.setFileSize(fileDAO.getFileSize());
             accountFileDTO.setDel(false);
             accountFileDTO.setIsDir(FolderFlagEnum.NO.getCode());
+            accountFileDTO.setFileSuffix(fileDAO.getFileSuffix());
+            accountFileDTO.setFileType(FileTypeEnum.fromExtension(fileDAO.getFileSuffix()).name());
 
             saveAccountFile(accountFileDTO);
             return true;
@@ -450,13 +501,14 @@ public class AccountFileServiceImpl implements AccountFileService {
         saveAccountFile(accountFileDTO);
     }
 
+
     private FileDAO saveFile(FileUploadReq req, String storeFileObjectKey) {
         FileDAO fileDAO = new FileDAO();
         fileDAO.setAccountId(req.getAccountId());
         fileDAO.setFileName(req.getFileName());
         fileDAO.setFileSize(req.getFile() != null ? req.getFile().getSize() : req.getFileSize());
         fileDAO.setFileSuffix(CommonUtil.getFileSuffix(req.getFileName()));
-        fileDAO.setIdentifier(req.getIdentifier());
+        fileDAO.setIdentifier(UUID.randomUUID().toString());
         fileDAO.setObjectKey(storeFileObjectKey);
         fileRepository.save(fileDAO);
         return fileDAO;
@@ -490,11 +542,21 @@ public class AccountFileServiceImpl implements AccountFileService {
      */
     private Long saveAccountFile(AccountFileDTO accountFileDTO) {
         checkParentFileId(accountFileDTO);
+        renameSoftDeletedFileIfExists(
+                accountFileDTO.getAccountId(),
+                accountFileDTO.getParentId(),
+                accountFileDTO.getFileName()
+        );
+
         AccountFileDAO accountFileDAO = SpringBeanUtil.copyProperties(accountFileDTO, AccountFileDAO.class);
 
+        // 处理重复文件名（当前目录下非删除文件）
         processDuplicatedFileName(accountFileDAO, null);
 
-        accountFileRepository.save(accountFileDAO);
+        // 确保是新插入，而非 merge
+        accountFileDAO.setId(null);
+
+        accountFileRepository.saveAndFlush(accountFileDAO);
         return accountFileDAO.getId();
     }
 
@@ -503,23 +565,27 @@ public class AccountFileServiceImpl implements AccountFileService {
         if (parentId == null) {
             parentId = accountFileDAO.getParentId();
         }
-        Long selectCount = accountFileRepository.countByAccountIdAndParentIdAndIsDirAndFileName(
+        Long activeCount = accountFileRepository.countByAccountIdAndParentIdAndIsDirAndFileNameAndDelFalse(
                 accountFileDAO.getAccountId(),
                 parentId,
                 accountFileDAO.getIsDir(),
                 accountFileDAO.getFileName()
         );
 
-        if (selectCount > 0) {
+        if (activeCount > 0) {
             // duplicated folder
             if (Objects.equals(accountFileDAO.getIsDir(), FolderFlagEnum.YES.getCode())) {
                 accountFileDAO.setFileName(accountFileDAO.getFileName() + "_" + System.currentTimeMillis());
             } else { // duplicated filename,
                 String[] split = accountFileDAO.getFileName().split("\\.");
-                accountFileDAO.setFileName(split[0] + "_" + System.currentTimeMillis() + "." + split[1]);
+                if (split.length > 1) {
+                    accountFileDAO.setFileName(split[0] + "_" + System.currentTimeMillis() + "." + split[1]);
+                } else {
+                    accountFileDAO.setFileName(accountFileDAO.getFileName() + "_" + System.currentTimeMillis());
+                }
             }
         }
-        return selectCount;
+        return activeCount;
     }
 
     @Override
