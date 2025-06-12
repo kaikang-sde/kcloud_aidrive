@@ -108,6 +108,7 @@ public class AccountFileController {
     @PostMapping("uploads/small-file")
     @Operation(summary = "small file upload")
     public ResponseEntity<JsonData> upload(FileUploadReq req) {
+        System.out.println("small file upload");
         req.setAccountId(LoginInterceptor.threadLocal.get().getId());
         accountFileService.uploadFile(req);
         return ResponseEntity.ok(JsonData.buildSuccess("File uploaded successfully"));

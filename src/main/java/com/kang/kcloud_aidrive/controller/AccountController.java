@@ -117,7 +117,7 @@ public class AccountController {
                                                          content = @Content(mediaType = "multipart/form-data")
                                                  ) MultipartFile file) {
         String url = accountService.uploadAvatar(file);
-        return ResponseEntity.ok(JsonData.buildSuccess("Avatar uploaded successfully - " + url));
+        return ResponseEntity.ok(JsonData.buildSuccess(url));
     }
 
     @PostMapping("login")

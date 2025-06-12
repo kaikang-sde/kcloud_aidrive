@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Kai Kang
@@ -28,7 +29,22 @@ public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Lon
 
     Long countByAccountIdAndParentIdAndIsDirAndFileName(Long accountId, Long parentId, Integer isDir, String fileName);
 
+    Long countByAccountIdAndParentIdAndIsDirAndFileNameAndDelFalse(
+            Long accountId, Long parentId, Integer isDir, String fileName
+    );
 
+    @Query(value = "SELECT * FROM account_file " +
+            "WHERE account_id = :accountId " +
+            "AND parent_id = :parentId " +
+            "AND file_name = :fileName " +
+            "AND is_dir = :isDir " +
+            "AND del = 1", nativeQuery = true)
+    List<AccountFileDAO> findSoftDeletedFiles(
+            @Param("accountId") Long accountId,
+            @Param("parentId") Long parentId,
+            @Param("fileName") String fileName,
+            @Param("isDir") Integer isDir
+    );
     List<AccountFileDAO> findByAccountIdAndParentIdOrderByIsDirDescEstCreateDesc(Long accountId, Long parentId);
 
     AccountFileDAO findByFileIdAndAccountId(Long fileId, Long accountId);
@@ -127,4 +143,6 @@ public interface AccountFileRepository extends JpaRepository<AccountFileDAO, Lon
 
     @Query("SELECT f.objectKey FROM FileDAO f WHERE f.id = :fileId")
     String findObjectKeyById(Long fileId);
+
+    boolean existsByFileIdAndDelFalse(Long fileId);
 }
