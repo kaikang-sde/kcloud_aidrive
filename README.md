@@ -43,22 +43,22 @@ gantt
       LLM Models Integration                                :done, llm, 2025-03-01, 2025-03-10
       FastAPI/LangChain                                     :done, fastapi, 2025-03-12, 2025-06-01
     section Frontend Development
-        
+      React/Typescript                                      :active, frontend, 2025-06-10
     section Deployment & Optimization
 ```
 
 ---
 
 ## 🔧 Core Technology Stack
-| Technology                       | Stack Used                                                                                                                                    |
-|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries (JPA, Redis, Kafka)                                                                         |
-| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                        |
+| Technology                       | Stack Used                                                                                                                                             |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**                      | Spring Boot 3.x, JDK 21, Java Ecosystem Libraries                                                                                                      |
+| **AI Integration**               | Python 3.x, FastAPI, LangChain, Milvus                                                                                                                 |
 | **Cloud Storage**                | MinIO, AWS S3 SDK Java 2.X, Distributed File Systems, Large File Transfer Processing (Chunked Upload, Instant Transfer/Upload, Resumable Upload, etc.) |
-| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                     |
-| **LLM Models**                   | GPT-4, LLaMA                                                                                                                                  |
-| **Security**                     | JWT, OAuth2, Spring Security                                                                                                                  |
-| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                    |
+| **Database**                     | MySQL, Vector DB (Milvus)                                                                                                                              |
+| **LLM Models**                   | GPT-4o, LLaMA, etc.                                                                                                                                    |
+| **Security**                     | JWT, OAuth2, Spring Security                                                                                                                           |
+| **Deployment & DevOps**          | Docker, Docker Compose, AWS EC2, Kubernetes, Spring Cloud, CI/CD (Jenkins, GitHub Actions)                                                             |
 
 ---
 
